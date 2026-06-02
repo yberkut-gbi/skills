@@ -8,7 +8,7 @@ description: Conduct a feature from aligned idea to merged-ready PR, then to a l
 This is the conductor for the whole set. Its single most important property is restraint: heavyweight process frameworks fail because they take control away from the developer and make process bugs hard to fix. This skill does the opposite — it offers the next step, keeps the shared state coherent, and lets the human steer. You sequence the other skills; you don't reimplement them.
 
 ## 0. Load the shared memory (always first)
-Read `CONTEXT.md`, the relevant ADRs in `docs/adr/`, and `docs/agents/team-rules.md`. The team-rules file is how past lessons reach this cycle — it may tell you, for instance, to align harder on acceptance criteria before building. Apply what it says. If `setup-workspace` hasn't run, offer to run it first.
+Read `CONTEXT.md`, the relevant ADRs in `docs/adr/`, and `docs/agents/team-rules.md`. The team-rules file is how past lessons reach this cycle — it may tell you, for instance, to align harder on acceptance criteria before building. Apply what it says. If `setup-skills` hasn't run, offer to run it first.
 
 ## The path (offer it; let the human skip steps)
 Present the cycle and adapt to what the work needs. Not every feature needs every stage — a one-line fix doesn't need a PRD.
