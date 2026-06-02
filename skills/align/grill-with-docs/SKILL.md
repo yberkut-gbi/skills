@@ -29,4 +29,4 @@ As decisions crystallise, update the shared memory inline:
 This is what makes the grilling compound instead of evaporating when the session ends.
 
 ## Know when to stop
-Grill until you've reached shared understanding, then stop. The goal is alignment, not interrogation for its own sake. When the open branches are resolved and the terms are clean, hand off to `to-prd` (to write it up) or straight to the build layer.
+Grill until you've reached shared understanding, then stop. The goal is alignment, not interrogation for its own sake. When the open branches are resolved and the terms are clean, hand off to `to-prd` (to write it up) or straight to the implement layer.

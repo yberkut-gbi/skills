@@ -1,6 +1,6 @@
 ---
 name: rules-synthesis
-description: Aggregate the accumulated PR coaching notes into team collaboration rules that the align and build skills load to work better with your developers. Use when the user wants to review collaboration trends across PRs, synthesize or update team rules, or asks "what patterns are we seeing in how people work with AI". Reads the coaching-notes folder, finds recurring human–AI collaboration gaps (overall and per developer), and writes the versioned docs/agents/team-rules.md that grill-with-docs, to-prd, and the orchestrator all read. Run periodically after a batch of PRs, not after every one.
+description: Aggregate the accumulated PR coaching notes into team collaboration rules that the align and implement skills load to work better with your developers. Use when the user wants to review collaboration trends across PRs, synthesize or update team rules, or asks "what patterns are we seeing in how people work with AI". Reads the coaching-notes folder, finds recurring human–AI collaboration gaps (overall and per developer), and writes the versioned docs/agents/team-rules.md that grill-with-docs, to-prd, and the orchestrator all read. Run periodically after a batch of PRs, not after every one.
 ---
 
 # Rules Synthesis

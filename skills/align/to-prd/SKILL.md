@@ -1,6 +1,6 @@
 ---
 name: to-prd
-description: Turn the aligned conversation context into a PRD and publish it to the project issue tracker. Use when the user wants to capture what's been discussed as a spec or PRD, ready to break into work. This version runs a short pre-flight gap-check first — surfacing the few unresolved decisions (acceptance criteria, error/edge cases, true out-of-scope), seeded by the team's recurring gaps — then synthesizes rather than re-interviewing. Acceptance criteria and edge cases are first-class fields, so the build and reflect layers can use them.
+description: Turn the aligned conversation context into a PRD and publish it to the project issue tracker. Use when the user wants to capture what's been discussed as a spec or PRD, ready to break into work. This version runs a short pre-flight gap-check first — surfacing the few unresolved decisions (acceptance criteria, error/edge cases, true out-of-scope), seeded by the team's recurring gaps — then synthesizes rather than re-interviewing. Acceptance criteria and edge cases are first-class fields, so the implement and reflect layers can use them.
 ---
 
 # To PRD
