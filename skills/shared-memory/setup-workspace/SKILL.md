@@ -1,6 +1,6 @@
 ---
 name: setup-workspace
-description: Scaffold the shared-memory substrate that every other skill in this set reads from — the domain glossary (CONTEXT.md), architecture decision records (docs/adr/), the agent config (issue tracker + triage labels), the collaboration rules file (team-rules.md), and the coaching-notes folder. Run this once per repository before using the align, build, or improve skills, or any time those skills seem to be missing context about the issue tracker, domain language, or team rules. This is the foundation that makes human and AI work from one source of truth.
+description: Scaffold the shared-memory substrate that every other skill in this set reads from — the domain glossary (CONTEXT.md), architecture decision records (docs/adr/), the agent config (issue tracker + triage labels), the collaboration rules file (team-rules.md), and the coaching-notes folder. Run this once per repository before using the align, implement, or improve skills, or any time those skills seem to be missing context about the issue tracker, domain language, or team rules. This is the foundation that makes human and AI work from one source of truth.
 ---
 
 # Setup Workspace

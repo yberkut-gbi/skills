@@ -15,7 +15,7 @@ Present the cycle and adapt to what the work needs. Not every feature needs ever
 
 1. **Align** — for anything non-trivial, run `grill-with-docs` to reach shared understanding and update the docs. This is the cheapest place to prevent rework.
 2. **Spec (optional)** — `to-prd` to write it up, `to-issues` to slice it. Skip for small changes.
-3. **Build** — `tdd-implement`, working one vertical slice at a time. Keep the acceptance criteria in view.
+3. **Implement** — `tdd-implement`, working one vertical slice at a time. Keep the acceptance criteria in view.
 4. **Ship** — `commit-and-pr`. Surface the PR URL.
 5. **Reflect** — `pr-coaching-note`, every cycle. The loop only compounds if this is consistent.
 
