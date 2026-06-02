@@ -40,7 +40,7 @@ npx skills experimental_install
 ## Quick start
 
 1. **Set up the substrate once per repo:** install and run `setup-skills`. It scaffolds the shared files the other skills read (`CONTEXT.md`, `docs/adr/`, `docs/agents/config.md`, `docs/agents/team-rules.md`, `docs/agents/coaching-notes/`).
-2. **Drive a feature** with `lifecycle-orchestrator`, or invoke any skill directly. The orchestrator loads the substrate, then offers: align → implement → reflect.
+2. **Drive a feature** with `orchestrate`, or invoke any skill directly. The orchestrator loads the substrate, then offers: align → implement → reflect.
 3. **Let the loop run.** After a batch of PRs, run `rules-synthesis` to turn coaching notes into sharper team rules; every few days, run `improve-codebase-architecture`.
 
 ## The four layers
@@ -54,7 +54,7 @@ npx skills experimental_install
 - `to-issues` — slice the PRD into independently-grabbable vertical slices.
 
 **2 · Implement** — build with discipline.
-- `lifecycle-orchestrator` — thin conductor; loads the substrate, offers the path, keeps you steering.
+- `orchestrate` — thin conductor; loads the substrate, offers the path, keeps you steering.
 - `tdd-implement` — vertical-slice red→green→refactor toward deep modules.
 - `commit-and-pr` — reviewable commits, push, PR via `gh`.
 - `diagnose` — disciplined bug / performance loop.
@@ -98,7 +98,7 @@ The collaboration loop is the point: a gap caught at the **back** of the cycle (
 
 The align layer, the shared-memory idea, and several implement/improve skills are inspired by **[Matt Pocock's `skills` repository](https://github.com/mattpocock/skills)** — `grill-with-docs`, `to-prd`, `to-issues`, `tdd`, `diagnose`, `zoom-out`, `improve-codebase-architecture`, `handoff`, and the `setup` config pattern. These are original re-expressions built around widely-used engineering practices: domain-driven design and ubiquitous language (Evans), deep modules (Ousterhout), tracer bullets (Hunt & Thomas), and test-driven development (Beck). If you prefer his exact versions, install them from his repo alongside these.
 
-The contributions original to this set are `pr-coaching-note`, `rules-synthesis`, and the thin `lifecycle-orchestrator` — plus the wiring that turns per-PR coaching into sharper team-wide alignment.
+The contributions original to this set are `pr-coaching-note`, `rules-synthesis`, and the thin `orchestrate` — plus the wiring that turns per-PR coaching into sharper team-wide alignment.
 
 ## License
 

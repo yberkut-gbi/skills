@@ -1,9 +1,9 @@
 ---
-name: lifecycle-orchestrator
+name: orchestrate
 description: Conduct a feature from aligned idea to merged-ready PR, then to a learning signal — loading the shared memory first, then moving through alignment, implementation, PR, and a coaching note, checking in with the human at each decision. Use when the user wants to take a piece of work through the full cycle, or says "let's build X" / "take this from start to PR" in a repo. Stays deliberately thin: it sequences and offers the other skills, it does not own the process or remove the human's control.
 ---
 
-# Lifecycle Orchestrator
+# Orchestrate
 
 This is the conductor for the whole set. Its single most important property is restraint: heavyweight process frameworks fail because they take control away from the developer and make process bugs hard to fix. This skill does the opposite — it offers the next step, keeps the shared state coherent, and lets the human steer. You sequence the other skills; you don't reimplement them.
 
