@@ -39,14 +39,14 @@ npx skills experimental_install
 
 ## Quick start
 
-1. **Set up the substrate once per repo:** install and run `setup-workspace`. It scaffolds the shared files the other skills read (`CONTEXT.md`, `docs/adr/`, `docs/agents/config.md`, `docs/agents/team-rules.md`, `docs/agents/coaching-notes/`).
+1. **Set up the substrate once per repo:** install and run `setup-skills`. It scaffolds the shared files the other skills read (`CONTEXT.md`, `docs/adr/`, `docs/agents/config.md`, `docs/agents/team-rules.md`, `docs/agents/coaching-notes/`).
 2. **Drive a feature** with `lifecycle-orchestrator`, or invoke any skill directly. The orchestrator loads the substrate, then offers: align → implement → reflect.
 3. **Let the loop run.** After a batch of PRs, run `rules-synthesis` to turn coaching notes into sharper team rules; every few days, run `improve-codebase-architecture`.
 
 ## The four layers
 
 **0 · Shared memory** — the substrate everything reads from.
-- `setup-workspace` — scaffolds it once per repo.
+- `setup-skills` — scaffolds it once per repo.
 
 **1 · Align (front of the cycle)** — reach shared understanding before building.
 - `grill-with-docs` — stress-test the plan against the domain model; update the docs inline.
@@ -70,9 +70,9 @@ npx skills experimental_install
 
 | File | Purpose | Written by |
 |------|---------|-----------|
-| `CONTEXT.md` | Domain glossary + system map (ubiquitous language) | `setup-workspace`, `grill-with-docs` |
+| `CONTEXT.md` | Domain glossary + system map (ubiquitous language) | `setup-skills`, `grill-with-docs` |
 | `docs/adr/` | Architecture decision records | `grill-with-docs`, `improve-codebase-architecture` |
-| `docs/agents/config.md` | Issue tracker + triage labels + doc layout | `setup-workspace` |
+| `docs/agents/config.md` | Issue tracker + triage labels + doc layout | `setup-skills` |
 | `docs/agents/team-rules.md` | Collaboration rules | `rules-synthesis` |
 | `docs/agents/coaching-notes/` | One note per PR | `pr-coaching-note` |
 
