@@ -1,6 +1,8 @@
-# In the Loop
+# fe — Frontend Standards Skills
 
-> Composable [agent skills](https://skills.sh) for human–AI software engineering. The human stays *in the loop* — and the loop gets sharper every cycle.
+> Composable [agent skills](https://skills.sh) for frontend engineering standards. The human stays *in the loop* — and the loop gets sharper every cycle.
+
+Built for a mixed agent fleet (Claude Code, GitHub Copilot) and any IDE (VS Code, JetBrains, Cursor). Every skill is namespaced `fe-` so it sits side-by-side with other teams' sets without collision.
 
 Two design commitments run through all of it:
 
@@ -12,93 +14,95 @@ Two design commitments run through all of it:
 Installed with [`npx skills`](https://www.npmjs.com/package/skills) (Vercel Labs). GitHub is the registry, so `owner/repo` maps to this repo.
 
 ```bash
-# Browse and select skills from this set (pick skills + target agents)
+# Browse and select skills (pick skills + target agents)
 npx skills add yberkut-gbi/skills
 
-# Install a single skill by direct path
-npx skills add https://github.com/yberkut-gbi/skills/tree/main/skills/implement/tdd-implement
+# Install a single skill by direct path (rich skills bring their reference files)
+npx skills add https://github.com/yberkut-gbi/skills/tree/main/skills/implement/fe-tdd
 
-# Target specific agents (Claude Code, Cursor, Codex, and many more)
+# Target specific agents
 npx skills add yberkut-gbi/skills --agent claude-code
-
-# Install globally (user-level instead of project-level)
-npx skills add yberkut-gbi/skills -g
 
 # List what's installed
 npx skills list
 ```
 
-Skills install into your agent's skills directory (e.g. `.claude/skills/`). The CLI records what you installed in `.skills.json` and `skills-lock.json` in your project — commit those so your whole team and CI get the same skills:
-
-```bash
-# In CI, restore the exact set from the lock file
-npx skills experimental_install
-```
-
-> Tip: `npx` can cache an old CLI. Use `npx skills@latest add …` to force the current version.
+Skills install into your agent's skills directory (e.g. `.claude/skills/`). The CLI records the set in `.skills.json` and `skills-lock.json` — commit those so the whole team and CI get the same skills.
 
 ## Quick start
 
-1. **Set up the substrate once per repo:** install and run `setup-skills`. It scaffolds the shared files the other skills read (`CONTEXT.md`, `docs/adr/`, `docs/agents/config.md`, `docs/agents/team-rules.md`, `docs/agents/coaching-notes/`).
-2. **Drive a feature** with `orchestrate`, or invoke any skill directly. The orchestrator loads the substrate, then offers: align → implement → reflect.
-3. **Let the loop run.** After a batch of PRs, run `rules-synthesis` to turn coaching notes into sharper team rules; every few days, run `improve-codebase-architecture`.
+1. **Set up the substrate once per repo:** run `fe-setup`. It scaffolds the shared files (`CONTEXT.md`, `docs/adr/`, `docs/agents/config.md`, `team-rules.md`, `coaching-notes/`) and wires your issue tracker — **Jira via the Atlassian MCP** by default (see [Jira](#jira-integration)), or GitHub/local. Then run `fe-check-setup` to confirm the MCP is reachable.
+2. **Drive a feature** with `fe-orchestrate`, or invoke any skill directly. The conductor loads the substrate, then offers: align → implement → improve.
+3. **Let the loop run.** After a batch of PRs, run `fe-distill-rules` to turn coaching notes into sharper team rules; every few days, run `fe-deepen`.
 
-## The four layers
+## The skills
 
-**0 · Shared memory** — the substrate everything reads from.
-- `setup-skills` — scaffolds it once per repo.
+**Conduct** — `fe-orchestrate`: thin conductor; loads the substrate, offers the path, keeps you steering.
 
-**1 · Align (front of the cycle)** — reach shared understanding before building.
-- `grill-with-docs` — stress-test the plan against the domain model; update the docs inline.
-- `to-prd` — synthesize the aligned context into a PRD, with a team-rules-seeded gap-check.
-- `to-issues` — slice the PRD into independently-grabbable vertical slices.
+**Shared memory** — the substrate everything reads from.
+- `fe-setup` — scaffolds it once per repo; wires the tracker (Jira/GitHub/local).
+- `fe-check-setup` — verifies the Atlassian/GitHub MCP servers are available.
 
-**2 · Implement** — build with discipline.
-- `orchestrate` — thin conductor; loads the substrate, offers the path, keeps you steering.
-- `tdd-implement` — vertical-slice red→green→refactor toward deep modules.
-- `commit-and-pr` — reviewable commits, push, PR via `gh`.
-- `diagnose` — disciplined bug / performance loop.
-- `zoom-out` — on-demand altitude on unfamiliar code.
+**Align** — reach shared understanding before building. *(rich: ★)*
+- `fe-grill-with-docs` ★ — stress-test the plan against the domain model; update `CONTEXT.md`/ADRs inline.
+- `fe-to-prd` — synthesize the aligned context into a PRD with a team-rules-seeded gap-check; publish to the tracker.
+- `fe-to-issues` ★ — slice the PRD into independently-grabbable vertical slices; create Jira stories/sub-tasks.
 
-**3 · Improve (back of the cycle)** — reflect and compound.
-- `pr-coaching-note` — growth-oriented note on the human–AI collaboration for each PR.
-- `improve-codebase-architecture` — periodic deep-module hygiene.
-- `rules-synthesis` — turns coaching notes into team rules.
-- `handoff` — carry context across sessions, models, and people.
+**Implement** — build with discipline.
+- `fe-tdd` ★ — vertical-slice red→green→refactor toward deep modules.
+- `fe-to-review` — reviewable commits, push, PR via `gh`; thread the Jira ticket through and link it back.
+
+**Improve** — reflect and compound.
+- `fe-deepen` ★ — periodic deep-module hygiene (controlled vocabulary + before/after report).
+- `fe-coach` — growth-oriented note on the human–AI collaboration for each PR.
+- `fe-distill-rules` — turns coaching notes into team rules.
+
+**Anytime** — cross-cutting lenses, reach for them at any stage.
+- `fe-zoom-out` — on-demand altitude on unfamiliar code.
+- `fe-diagnose` — disciplined bug / performance loop.
+- `fe-handoff` — carry context across sessions, models, and people.
+
+★ = rich multi-file skill (a self-sufficient `SKILL.md` core plus reference files for depth, loaded on demand).
+
+## Jira integration
+
+`fe-setup` wires Jira through the official **Atlassian MCP server** (`https://mcp.atlassian.com/v1/mcp`, OAuth — no tokens in the repo). Your **cloud URL and project key live in `docs/agents/config.md`**, so the skills target *any* Jira project; nothing is hardcoded. `fe-to-prd` creates epics/stories, `fe-to-issues` creates stories/sub-tasks, and `fe-to-review` threads the ticket key and links the PR back — all by referencing Atlassian tools *by function*, so the same skills work whether tool IDs are prefixed `mcp__atlassian__` (Claude Code) or `mcp_com_atlassian_` (Copilot). Per-agent/IDE config and the tool map live in `fe-setup/MCP-SETUP.md`; `fe-check-setup` verifies readiness.
 
 ## The shared-memory substrate
 
 | File | Purpose | Written by |
 |------|---------|-----------|
-| `CONTEXT.md` | Domain glossary + system map (ubiquitous language) | `setup-skills`, `grill-with-docs` |
-| `docs/adr/` | Architecture decision records | `grill-with-docs`, `improve-codebase-architecture` |
-| `docs/agents/config.md` | Issue tracker + triage labels + doc layout | `setup-skills` |
-| `docs/agents/team-rules.md` | Collaboration rules | `rules-synthesis` |
-| `docs/agents/coaching-notes/` | One note per PR | `pr-coaching-note` |
+| `CONTEXT.md` | Domain glossary + system map (ubiquitous language) | `fe-setup`, `fe-grill-with-docs` |
+| `docs/adr/` | Architecture decision records | `fe-grill-with-docs`, `fe-deepen` |
+| `docs/agents/config.md` | Tracker (Jira/GitHub/local) + triage labels + doc layout | `fe-setup` |
+| `docs/agents/team-rules.md` | Collaboration rules | `fe-distill-rules` |
+| `docs/agents/coaching-notes/` | One note per PR | `fe-coach` |
 
 ## The two improvement loops
 
 ```
                          ┌──────────── COLLABORATION LOOP ────────────┐
                          │                                            │
-   team-rules.md ──► grill-with-docs / to-prd ──► tdd ──► PR ──► pr-coaching-note
-        ▲    (seeds alignment with what the team keeps leaving implicit)   │
-        │                                                                  │
-        └────────────────────── rules-synthesis ◄──────────── coaching notes
+  team-rules.md ─► fe-grill-with-docs / fe-to-prd ─► fe-tdd ─► PR ─► fe-coach
+        ▲   (seeds alignment with what the team keeps leaving implicit)   │
+        │                                                                 │
+        └────────────────────── fe-distill-rules ◄──────────── coaching notes
                           (aggregates recurring gaps into rules)
 
                          ┌──────────── ARCHITECTURE LOOP ─────────────┐
-   CONTEXT.md + ADRs ──► improve-codebase-architecture ──► updated ADRs / CONTEXT.md
+   CONTEXT.md + ADRs ──► fe-deepen ──► updated ADRs / CONTEXT.md
                           (every few days, fights entropy)
 ```
 
-The collaboration loop is the point: a gap caught at the **back** of the cycle (a coaching note) sharpens the alignment at the **front** of the next one. `handoff` stitches both loops across time.
+The collaboration loop is the point: a gap caught at the **back** of the cycle (a coaching note) sharpens the alignment at the **front** of the next one. `fe-handoff` stitches both loops across time.
 
 ## Credit & provenance
 
-The align layer, the shared-memory idea, and several implement/improve skills are inspired by **[Matt Pocock's `skills` repository](https://github.com/mattpocock/skills)** — `grill-with-docs`, `to-prd`, `to-issues`, `tdd`, `diagnose`, `zoom-out`, `improve-codebase-architecture`, `handoff`, and the `setup` config pattern. These are original re-expressions built around widely-used engineering practices: domain-driven design and ubiquitous language (Evans), deep modules (Ousterhout), tracer bullets (Hunt & Thomas), and test-driven development (Beck). If you prefer his exact versions, install them from his repo alongside these.
+The align layer, the shared-memory idea, and several implement/improve skills are inspired by **[Matt Pocock's `skills` repository](https://github.com/mattpocock/skills)** — `fe-grill-with-docs`, `fe-to-prd`, `fe-to-issues`, `fe-tdd`, `fe-deepen`, `fe-diagnose`, `fe-zoom-out`, `fe-handoff` are re-expressions of his, built around widely-used engineering practices: domain-driven design (Evans), deep modules (Ousterhout), tracer bullets (Hunt & Thomas), and TDD (Beck). Each derived skill carries a one-line credit.
 
-The contributions original to this set are `pr-coaching-note`, `rules-synthesis`, and the thin `orchestrate` — plus the wiring that turns per-PR coaching into sharper team-wide alignment.
+The Jira/Atlassian-MCP wiring, the `fe-check-setup` readiness pattern, ticket-key threading, and the slicing strategies are adapted from Rezolve's internal `rezolve-enrich-ai` agent skills.
+
+Original to this set: `fe-orchestrate`, `fe-setup`, `fe-to-review`, `fe-coach`, `fe-distill-rules`, and the wiring that turns per-PR coaching into sharper team-wide alignment.
 
 ## License
 
