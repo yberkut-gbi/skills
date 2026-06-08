@@ -1,6 +1,6 @@
 ---
 name: fe-coach
-description: After a feature reaches a PR, write a growth-oriented coaching note on the developer's human–AI collaboration during the cycle — how clearly they framed the work, what context they supplied, where ambiguity caused rework. Use at the end of every feature/PR cycle, or when the user asks for a coaching note, a collaboration retro, or feedback on how a PR was driven. Produces a markdown note plus a structured signals block that fe-distill-rules aggregates into team rules. A coaching tool, not a code review or performance evaluation.
+description: After a feature reaches a PR, write a growth-oriented coaching note on the developer's human–AI collaboration during the cycle — how clearly they framed the work, what context they supplied, where ambiguity caused rework. Use at the end of every feature/PR cycle, or when the user asks for a coaching note, a collaboration retro, or feedback on how a PR was driven. Produces a markdown note plus a structured signals block that fe-distill-rules aggregates into team rules. For autonomous (fe-ship) runs it also reflects on efficiency — turns, escalations, rework — pairing with the token-cost record the runner attaches. A coaching tool, not a code review or performance evaluation.
 ---
 
 # PR Coaching Note (Human–AI Collaboration)
@@ -33,7 +33,8 @@ Lead with real, specific strengths. Give 1–3 concrete opportunities: observati
 Save to `docs/agents/coaching-notes/<YYYY-MM-DD>-pr-<number>-<author>.md`:
 ```
 ---
-author: <github-username>
+author: <github-username or "agent" for autonomous runs>
+ticket: <JIRA-KEY>          # join key for the cost record on autonomous runs
 pr: <url or number>
 date: <YYYY-MM-DD>
 cycle_summary: <one line — what was built>
@@ -56,6 +57,9 @@ signals:
 <one or two encouraging sentences>
 ```
 The `signals` block makes the loop work — `fe-distill-rules` reads `growth_area` entries across notes. Tag honestly; padding corrupts the team rules.
+
+## Autonomous runs (fe-ship)
+When the cycle ran headless, you're the only witness to how it went — so always populate the **iteration-efficiency** signal and note any churn or stop-and-escalate in the prose. Don't try to read the cost figures: the runner writes `<date>-<KEY>.cost.json` *after* the run, beside this note. Just set `ticket:` so `fe-distill-rules` can join the dollar cost to the cause you named. The "developer" being coached is the issue-and-spec quality, not a person — keep it constructive all the same.
 
 ## Trust
 These notes are for the developer's growth and visible to them. Don't write anything you wouldn't say to them directly and kindly.

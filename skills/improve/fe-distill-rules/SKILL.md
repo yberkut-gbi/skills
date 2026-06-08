@@ -1,6 +1,6 @@
 ---
 name: fe-distill-rules
-description: Aggregate the accumulated fe-coach notes into team collaboration rules that the align and implement skills load to work better with your developers. Use when the user wants to review collaboration trends across PRs, synthesize or update team rules, or asks "what patterns are we seeing in how people work with AI". Reads the coaching-notes folder, finds recurring human–AI collaboration gaps (overall and per developer), and writes the versioned docs/agents/team-rules.md. Run periodically after a batch of PRs, not after every one.
+description: Aggregate the accumulated fe-coach notes into team collaboration rules that the align and implement skills load to work better with your developers. Use when the user wants to review collaboration trends across PRs, synthesize or update team rules, or asks "what patterns are we seeing in how people work with AI". Reads the coaching-notes folder, finds recurring human–AI collaboration gaps (overall and per developer), joins the autonomous-run cost records to surface efficiency and spend trends, and writes the versioned docs/agents/team-rules.md. Run periodically after a batch of PRs, not after every one.
 ---
 
 # Distill Rules
@@ -8,15 +8,16 @@ description: Aggregate the accumulated fe-coach notes into team collaboration ru
 Closes the learning loop: turn a pile of `fe-coach` notes into shared rules that change how the AI works with the *whole team*, so recurring friction gets designed out instead of re-coached every time.
 
 ## Input
-Read `docs/agents/coaching-notes/`. Each note carries a `signals` block (tagged dimensions + `strong`/`solid`/`growth_area`). Count those, and read the prose for the *why*.
+Read `docs/agents/coaching-notes/`. Each note carries a `signals` block (tagged dimensions + `strong`/`solid`/`growth_area`). Count those, and read the prose for the *why*. Autonomous (`fe-ship`) cycles also drop a sibling `<date>-<KEY>.cost.json` — `total_cost_usd`, `num_turns`, token/cache counts, `terminal_reason`, per-model spend. Join each to its note by `ticket`.
 
 ## Analysis
 - **Aggregate by dimension.** Count `growth_area` per dimension across notes. A dimension recurring across many PRs and people is a team-level pattern worth a rule; a one-off isn't — wait for a pattern.
 - **Look per developer too**, as growth not ranking — where someone needs support, or a strength worth sharing. Constructive, private by default.
 - **Read for nuance.** Two `spec-clarity / growth_area` notes can have different causes (missing acceptance criteria vs missing error cases). Target the real cause.
+- **Cost-to-cause (autonomous runs).** Aggregate `total_cost_usd` and `num_turns` across cost records; flag outliers and the trend. Then *correlate*: expensive, high-turn, or escalated runs almost always pair with a `spec-clarity` / `scope-management` / `context-provision` growth_area. Name the cause, not the symptom — a costly run is a signal that the spec was thin, not that the AI was wasteful. Watch cache-creation-heavy runs (context re-primed instead of reused) and Opus spent on work Haiku could do.
 
 ## Output
-**1. A trends summary** for the human — what's improving, what recurs, the top patterns with evidence. Constructive.
+**1. A trends summary** for the human — what's improving, what recurs, the top patterns with evidence. Constructive. For autonomous runs, include the **efficiency picture**: total and per-cycle spend, the trend, and the costliest cycles tied to their cause (e.g. "the three priciest runs were all under-specified — alignment would have paid for itself").
 
 **2. The versioned `docs/agents/team-rules.md`**, written *to a future AI*: how to collaborate better with these developers. Rules can be behavioral and skill-shaped (which skill to invoke). Each rule pairs guidance with a one-line rationale.
 ```
@@ -30,6 +31,10 @@ Read `docs/agents/coaching-notes/`. Each note carries a `signals` block (tagged 
 ## During implementation
 - Surface architecture and tradeoff decisions to the developer instead of deciding silently.
   *Why: decision-ownership recurs as a growth area; developers want these calls.*
+
+## Autonomous runs
+- Don't hand fe-ship an issue without acceptance criteria and error cases.
+  *Why: the costliest autonomous runs this batch averaged 3x the turns and spend of well-specified ones — the cause was spec-clarity, not the model.*
 ```
 
 ## How the loop closes
