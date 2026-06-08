@@ -35,9 +35,13 @@ Skills install into your agent's skills directory (e.g. `.claude/skills/`). The 
 2. **Drive a feature** with `fe-orchestrate`, or invoke any skill directly. The conductor loads the substrate, then offers: align → implement → improve.
 3. **Let the loop run.** After a batch of PRs, run `fe-distill-rules` to turn coaching notes into sharper team rules; every few days, run `fe-deepen`.
 
+**Going hands-off:** once an issue is spec-ready, `fe-ship` runs implement → green-gate → self-review → PR **unattended** — the only human step left is the PR review. Humans shape the spec (the `align` skills, interactive) and confirm the PR; AI owns everything between. Each autonomous run records its **token cost** beside the coaching note, so efficiency feeds the same learning loop. See [RUNNER.md](skills/conduct/fe-ship/RUNNER.md).
+
 ## The skills
 
-**Conduct** — `fe-orchestrate`: thin conductor; loads the substrate, offers the path, keeps you steering.
+**Conduct** — two ways to drive the cycle.
+- `fe-orchestrate` — thin *interactive* conductor; loads the substrate, offers the path, keeps you steering.
+- `fe-ship` — the *autonomous* conductor; takes a ship-ready issue to a pre-reviewed PR headless (`claude -p` / CI), holds a hard green gate (typecheck, lint, tests, build), then stops for human review. See [running it headless](skills/conduct/fe-ship/RUNNER.md).
 
 **Shared memory** — the substrate everything reads from.
 - `fe-setup` — scaffolds it once per repo; wires the tracker (Jira/GitHub/local).
@@ -76,7 +80,7 @@ Skills install into your agent's skills directory (e.g. `.claude/skills/`). The 
 | `docs/adr/` | Architecture decision records | `fe-grill-with-docs`, `fe-deepen` |
 | `docs/agents/config.md` | Tracker (Jira/GitHub/local) + triage labels + doc layout | `fe-setup` |
 | `docs/agents/team-rules.md` | Collaboration rules | `fe-distill-rules` |
-| `docs/agents/coaching-notes/` | One note per PR | `fe-coach` |
+| `docs/agents/coaching-notes/` | One note per PR (+ a token-cost record per autonomous run) | `fe-coach`, `fe-ship` runner |
 
 ## The two improvement loops
 
@@ -102,7 +106,7 @@ The align layer, the shared-memory idea, and several implement/improve skills ar
 
 The Jira/Atlassian-MCP wiring, the `fe-check-setup` readiness pattern, ticket-key threading, and the slicing strategies are adapted from Rezolve's internal `rezolve-enrich-ai` agent skills.
 
-Original to this set: `fe-orchestrate`, `fe-setup`, `fe-to-review`, `fe-coach`, `fe-distill-rules`, and the wiring that turns per-PR coaching into sharper team-wide alignment.
+Original to this set: `fe-orchestrate`, `fe-ship`, `fe-setup`, `fe-to-review`, `fe-coach`, `fe-distill-rules`, and the wiring that turns per-PR coaching into sharper team-wide alignment.
 
 ## License
 
