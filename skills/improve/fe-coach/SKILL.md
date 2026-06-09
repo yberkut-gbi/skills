@@ -59,7 +59,26 @@ signals:
 The `signals` block makes the loop work — `fe-distill-rules` reads `growth_area` entries across notes. Tag honestly; padding corrupts the team rules.
 
 ## Autonomous runs (fe-ship)
-When the cycle ran headless, you're the only witness to how it went — so always populate the **iteration-efficiency** signal and note any churn or stop-and-escalate in the prose. Don't try to read the cost figures: the runner writes `<date>-<KEY>.cost.json` *after* the run, beside this note. Just set `ticket:` so `fe-distill-rules` can join the dollar cost to the cause you named. The "developer" being coached is the issue-and-spec quality, not a person — keep it constructive all the same.
+When the cycle ran headless, you're the only witness to how it went — so always populate the **iteration-efficiency** signal and note any churn or stop-and-escalate in the prose. The "developer" being coached is the issue-and-spec quality, not a person — keep it constructive all the same.
+
+**Cost record — always create it yourself.** Regardless of whether `scripts/fe-ship.sh` ran the cycle or the skill was invoked interactively, write `docs/agents/coaching-notes/<YYYY-MM-DD>-<KEY>.cost.json` yourself so `fe-distill-rules` always finds it:
+
+```json
+{
+  "ticket": "<KEY>",
+  "date": "<YYYY-MM-DD>",
+  "outcome": "<complete | stop-and-escalate | error>",
+  "cost_usd": null,
+  "num_turns": null,
+  "duration_ms": null,
+  "session_id": null,
+  "tokens": { "input": null, "output": null, "cache_read": null, "cache_creation": null },
+  "model_usage": null,
+  "_note": "Cost figures unavailable — run via scripts/fe-ship.sh for full token accounting."
+}
+```
+
+Fill in any fields you actually know (e.g. `outcome` from how the run ended). If `scripts/fe-ship.sh` ran the cycle it will overwrite this stub with real numbers after `claude -p` exits — that's fine, the stub just ensures the file always exists for joining. Set `ticket:` in the coaching note frontmatter to the same key so `fe-distill-rules` can correlate coaching signals to cost.
 
 ## Trust
 These notes are for the developer's growth and visible to them. Don't write anything you wouldn't say to them directly and kindly.
