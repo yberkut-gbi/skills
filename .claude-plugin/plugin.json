@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
-  "name": "yberkut-gbi-skills",
+  "name": "Rezolve Ai: Frontend Skills",
   "version": "0.1.0",
   "description": "fe- agent skills for the full feature lifecycle: align, implement, improve, and conduct — with shared-memory substrate and Jira/MCP integration.",
   "author": {
