@@ -1,6 +1,7 @@
 ---
 name: fe-orchestrate
 description: Conduct a feature from aligned idea to merged-ready PR to a learning signal — load the shared memory first, then move through alignment, implementation, PR, and a coaching note, checking in with the human at each decision. Use when the user wants to take work through the full cycle, or says "let's build X" / "take this from start to PR" in a repo. Stays deliberately thin — sequences and offers the other skills, doesn't own the process or remove the human's control.
+model: opus
 ---
 
 # Orchestrate
@@ -14,7 +15,7 @@ Read `CONTEXT.md`, the relevant ADRs in `docs/adr/`, and `docs/agents/team-rules
 Not every feature needs every stage — a one-line fix doesn't need a PRD.
 1. **Align** — for anything non-trivial, `fe-grill-with-docs` to reach shared understanding and update the docs.
 2. **Spec (optional)** — `fe-to-prd` to write it up, `fe-to-issues` to slice it.
-3. **Implement** — `fe-tdd`, one vertical slice at a time, acceptance criteria in view.
+3. **Implement** — `fe-tdd`, one vertical slice at a time, acceptance criteria in view. When a Jira ticket is in play, claim it first via the ticket protocol (`fe-setup`/MCP-SETUP.md): assign yourself if unassigned; if it's someone else's, surface who and when and let the developer decide; move it to **In Progress**.
 4. **Review** — `fe-to-review`. Surface the PR URL.
 5. **Reflect** — `fe-coach`, every cycle. The loop only compounds if this is consistent.
 

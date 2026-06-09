@@ -9,15 +9,16 @@ From inside a target repo (one that has run `fe-setup`, with the tracker pointed
 ```bash
 claude -p "Use the fe-ship skill to take Jira issue ABC-123 to a pre-reviewed PR. \
 Do not merge; stop at the PR for human review." \
-  --model opus \
+  --model sonnet \
   --max-turns 60 \
   --permission-mode acceptEdits \
-  --allowedTools "Read,Edit,Write,Bash(npm:*),Bash(pnpm:*),Bash(git:*),Bash(gh:*)" \
+  --allowedTools "Read,Edit,Write,Bash(npm:*),Bash(pnpm:*),Bash(git:*),Bash(gh:*),mcp__atlassian__*" \
   --output-format stream-json --verbose
 ```
 
+- `--model sonnet` — `fe-ship` is autonomous **development** within an already-pinned spec (it stops rather than make architectural calls), so Sonnet is the right default for cost and speed. Override to Opus for an architecturally heavy ticket: `FE_SHIP_MODEL=opus`.
 - `--permission-mode acceptEdits` lets it edit files without prompting while still gating risky commands.
-- `--allowedTools` is the safety boundary — scope it to the build tools your repos actually use.
+- `--allowedTools` is the safety boundary — scope it to the build tools your repos actually use. **Include the Atlassian MCP tools** (`mcp__atlassian__*`, or your agent's prefix) — a headless run can't answer a permission prompt, and it needs them to claim the ticket, set the AFK label, and move the status.
 - `--max-turns` caps a runaway loop. Tune to your largest realistic slice.
 
 ## The script — Jira-native, worktree-isolated, cost-accounted
@@ -33,9 +34,9 @@ set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 NAME="$(basename "$REPO_ROOT")"
-MODEL="${FE_SHIP_MODEL:-opus}"
+MODEL="${FE_SHIP_MODEL:-sonnet}"   # Sonnet for dev; FE_SHIP_MODEL=opus for architecturally heavy tickets
 MAX_TURNS="${FE_SHIP_MAX_TURNS:-60}"
-TOOLS="Read,Edit,Write,Bash(npm:*),Bash(pnpm:*),Bash(yarn:*),Bash(git:*),Bash(gh:*)"
+TOOLS="Read,Edit,Write,Bash(npm:*),Bash(pnpm:*),Bash(yarn:*),Bash(git:*),Bash(gh:*),mcp__atlassian__*"
 COSTLOG="${REPO_ROOT}/.fe-ship-cost.log"; : > "$COSTLOG"
 
 ship_one() {
@@ -107,7 +108,7 @@ echo "✓ Review the PRs (the one human gate)."
 claude -p "Find Jira issues in project <KEY> that are AI-ready (JQL via the Atlassian MCP). \
 For each, use the fe-ship skill to take it to a pre-reviewed PR. One at a time; stop each at the PR." \
   --permission-mode acceptEdits \
-  --allowedTools "Read,Edit,Write,Bash(npm:*),Bash(git:*),Bash(gh:*)"
+  --allowedTools "Read,Edit,Write,Bash(npm:*),Bash(git:*),Bash(gh:*),mcp__atlassian__*"
 
 # B. Ask the agent once for the ready keys, then fan out for parallelism + per-run cost:
 scripts/fe-ship.sh ABC-123 ABC-124 ABC-125

@@ -1,6 +1,7 @@
 ---
 name: fe-ship
-description: Take a ship-ready issue end to end without a human in the seat — implement test-first, hold a hard green gate (typecheck, lint, tests, build), self-review the diff, and open a pull request, then stop for human review. The autonomous sibling of fe-orchestrate — same recipe, no per-step check-ins. Use when invoked headless (`claude -p`), in CI, or when the user says "ship <ISSUE> autonomously" / "take this issue to a PR unattended" / "no human until PR review". Refuses to invent scope — if the issue isn't spec-ready it stops and sends it back to planning rather than guessing.
+description: Take a ship-ready Jira issue end to end without a human in the seat — claim the ticket and mark it AFK + In Progress, implement test-first, hold a hard green gate (typecheck, lint, tests, build), self-review the diff, and open a pull request, then stop for human review. The autonomous sibling of fe-orchestrate — same recipe, no per-step check-ins. Use when invoked headless (`claude -p`), in CI, or when the user says "ship <ISSUE> autonomously" / "take this issue to a PR unattended" / "no human until PR review". Refuses to invent scope or steal a ticket — if the issue isn't spec-ready, or is assigned to someone else, it stops rather than guessing.
+model: sonnet
 ---
 
 # Ship
@@ -8,10 +9,16 @@ description: Take a ship-ready issue end to end without a human in the seat — 
 The autonomous conductor. A human shaped the spec and a human will review the PR; everything between those two points is yours to run unattended. Quality is held by a hard verification gate and a refusal to guess — not by someone watching the screen. Sequence the other skills; don't reimplement them.
 
 ## Precondition: the issue must be ship-ready
-Before any code, fetch the issue from the configured tracker — **Jira by default** (Atlassian `getJiraIssue`; cloud URL and project key live in `docs/agents/config.md`, tool map in `fe-setup`/MCP-SETUP.md), or GitHub/local if `config.md` says so. It is ship-ready only if it has clear acceptance criteria and an unambiguous scope. If it's vague, carries open design questions, or needs a tradeoff that isn't already pinned by the issue or an ADR — **stop**. Don't guess. Comment on the ticket with exactly what's missing and that it needs `fe-grill-with-docs` / `fe-to-issues` first. Planning is the human's half of the split; never do it silently.
+Before any code, fetch the Jira issue (Atlassian `getJiraIssue`; cloud URL and project key live in `docs/agents/config.md`, tool map in `fe-setup`/MCP-SETUP.md). It is ship-ready only if it has clear acceptance criteria and an unambiguous scope. If it's vague, carries open design questions, or needs a tradeoff that isn't already pinned by the issue or an ADR — **stop**. Don't guess. Comment on the ticket with exactly what's missing and that it needs `fe-grill-with-docs` / `fe-to-issues` first. Planning is the human's half of the split; never do it silently.
 
 ## 0. Load the shared memory (always first)
 Same as `fe-orchestrate`: read `CONTEXT.md`, the relevant ADRs in `docs/adr/`, and `docs/agents/team-rules.md`. team-rules carries past lessons into this run — apply what it says. If `fe-setup` hasn't run or the Jira MCP is unconfirmed, stop and say so: a headless run can't configure itself, and guessing the substrate corrupts the shared memory.
+
+## 0.5 Claim the ticket (assignment · AFK · status)
+Run the ticket protocol (`fe-setup`/MCP-SETUP.md), with the autonomous rule for a contested ticket:
+- **Check the assignee** (`getJiraIssue` + change history). Unassigned → assign yourself (`editJiraIssue`). Already you → continue. **Assigned to someone else → stop and escalate** (§5): comment noting who holds it and when they were assigned, then exit. With no human present you must never silently steal a ticket out from under its owner.
+- **Mark it AFK** — add the `AFK` label (`jira.afk_label` in `config.md`) so anyone scanning the board sees this ticket is being driven away-from-keyboard by an agent.
+- **Move it to In Progress** (`statuses.in_progress`) so the board reflects that the run is live.
 
 ## 1. Implement — `fe-tdd`, slice by slice
 Run `fe-tdd` against the acceptance criteria, one vertical slice at a time, ticket key threaded through branch and commits. Stay in scope: build what the issue asks, not what you wish it asked. New scope that surfaces mid-run is a reason to stop (§5), not to expand the change.
@@ -23,10 +30,11 @@ This is what makes "no human until the PR" safe. Discover the repo's checks from
 Before opening the PR, read your own diff as a skeptical reviewer would and run the review skills over it — `/code-review` and `/security-review` (or `/review`). Address what they surface; if you deliberately don't, say why in the PR body. The point of the split is that the human opens an **already-vetted** PR and spends their attention on judgment, not on lint and obvious bugs.
 
 ## 4. Open the PR — `fe-to-review` — then STOP
-Hand off to `fe-to-review`: reviewable commits, push, `gh pr create`, ticket key threaded through, PR linked back to Jira. Then stop. **Never merge** — the PR is the human's gate, the one place in this loop a person decides. Surface the PR URL and the green-gate results as the last lines of your output so a script or CI step can capture them.
+Hand off to `fe-to-review`: reviewable commits, push, `gh pr create`, ticket key threaded through, PR linked back to Jira — and it moves the ticket to **In Review** and clears the **AFK** label, returning it to human hands. Then stop. **Never merge** — the PR is the human's gate, the one place in this loop a person decides. Surface the PR URL and the green-gate results as the last lines of your output so a script or CI step can capture them.
 
 ## 5. When to stop instead of ship (the autonomous safety valve)
 You have no human to check in with mid-run, so a clean stop replaces the check-in. Stop and escalate — comment on the ticket, leave a draft PR or none at all, state plainly what blocked you — when:
+- the ticket is **already assigned to someone else** (don't steal it — name the owner and when they were assigned);
 - the issue turns out underspecified once you're in the code;
 - a consequential decision (architecture, data shape, a public API, a real tradeoff) isn't pinned by the issue or an ADR;
 - the green gate won't go green honestly;

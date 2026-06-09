@@ -31,7 +31,7 @@ Skills install into your agent's skills directory (e.g. `.claude/skills/`).
 
 ## Quick start
 
-1. **Set up the substrate once per repo:** run `fe-setup`. It scaffolds the shared files (`CONTEXT.md`, `docs/adr/`, `docs/agents/config.md`, `team-rules.md`, `coaching-notes/`) and wires your issue tracker — **Jira via the Atlassian MCP** by default (see [Jira](#jira-integration)), or GitHub/local. Then run `fe-check-setup` to confirm the MCP is reachable.
+1. **Set up the substrate once per repo:** run `fe-setup`. It scaffolds the shared files (`CONTEXT.md`, `docs/adr/`, `docs/agents/config.md`, `team-rules.md`, `coaching-notes/`) and wires **Jira via the Atlassian MCP** — the only issue tracker the skills use (see [Jira](#jira-integration)). Then run `fe-check-setup` to confirm the MCP is reachable.
 2. **Drive a feature** with `fe-orchestrate`, or invoke any skill directly. The conductor loads the substrate, then offers: align → implement → improve.
 3. **Let the loop run.** After a batch of PRs, run `fe-distill-rules` to turn coaching notes into sharper team rules; every few days, run `fe-deepen`.
 
@@ -44,8 +44,8 @@ Skills install into your agent's skills directory (e.g. `.claude/skills/`).
 - `fe-ship` — the *autonomous* conductor; takes a ship-ready issue to a pre-reviewed PR headless (`claude -p` / CI), holds a hard green gate (typecheck, lint, tests, build), then stops for human review. See [running it headless](skills/conduct/fe-ship/RUNNER.md).
 
 **Shared memory** — the substrate everything reads from.
-- `fe-setup` — scaffolds it once per repo; wires the tracker (Jira/GitHub/local).
-- `fe-check-setup` — verifies the Atlassian/GitHub MCP servers are available.
+- `fe-setup` — scaffolds it once per repo; wires Jira via the Atlassian MCP.
+- `fe-check-setup` — verifies the Atlassian (Jira) MCP is available.
 
 **Align** — reach shared understanding before building. *(rich: ★)*
 - `fe-grill-with-docs` ★ — stress-test the plan against the domain model; update `CONTEXT.md`/ADRs inline.
@@ -70,7 +70,11 @@ Skills install into your agent's skills directory (e.g. `.claude/skills/`).
 
 ## Jira integration
 
-`fe-setup` wires Jira through the official **Atlassian MCP server** (`https://mcp.atlassian.com/v1/mcp`, OAuth — no tokens in the repo). Your **cloud URL and project key live in `docs/agents/config.md`**, so the skills target *any* Jira project; nothing is hardcoded. `fe-to-prd` creates epics/stories, `fe-to-issues` creates stories/sub-tasks, and `fe-to-review` threads the ticket key and links the PR back — all by referencing Atlassian tools *by function*, so the same skills work whether tool IDs are prefixed `mcp__atlassian__` (Claude Code) or `mcp_com_atlassian_` (Copilot). Per-agent/IDE config and the tool map live in `fe-setup/MCP-SETUP.md`; `fe-check-setup` verifies readiness.
+Jira is the **only** issue tracker the skills use. `fe-setup` wires it through the official **Atlassian MCP server** (`https://mcp.atlassian.com/v1/mcp`, OAuth — no tokens in the repo). Your **cloud URL, project key, and status map live in `docs/agents/config.md`**, so the skills target *any* Jira project; nothing is hardcoded. `fe-to-prd` creates epics/stories, `fe-to-issues` creates stories/sub-tasks, and `fe-to-review` threads the ticket key and links the PR back — all by referencing Atlassian tools *by function*, so the same skills work whether tool IDs are prefixed `mcp__atlassian__` (Claude Code) or `mcp_com_atlassian_` (Copilot). (GitHub still hosts code and PRs — opened with the `gh` CLI — but it's not an issue tracker here, so no GitHub MCP is needed.)
+
+**The ticket protocol.** Whenever a work skill (`fe-tdd`, `fe-orchestrate`, `fe-ship`, `fe-diagnose`) begins on an existing ticket, it *claims* it: assign yourself if it's unassigned; if it's held by someone else, report **who and when** and ask before continuing — and on autonomous `fe-ship` runs, never steal it, just stop and escalate. It then moves the status to match the work (**In Progress** → **In Review**), and `fe-ship` adds an **`AFK`** label so the board shows agent-driven, away-from-keyboard work (cleared at the PR). Full protocol and tool map in `fe-setup/MCP-SETUP.md`; `fe-check-setup` verifies readiness.
+
+**Model split.** Each skill pins a `model:` to match its work — **Opus** for the architectural and grilling skills (`fe-grill-with-docs`, `fe-to-prd`, `fe-to-issues`, `fe-deepen`, `fe-coach`, `fe-distill-rules`, `fe-zoom-out`, `fe-orchestrate`), **Sonnet** for the development and mechanical ones (`fe-tdd`, `fe-to-review`, `fe-diagnose`, `fe-handoff`, `fe-setup`, `fe-check-setup`, and `fe-ship`, which executes within an already-pinned spec — override to Opus via `FE_SHIP_MODEL=opus` for an architecturally heavy ticket).
 
 ## The shared-memory substrate
 
@@ -78,7 +82,7 @@ Skills install into your agent's skills directory (e.g. `.claude/skills/`).
 |------|---------|-----------|
 | `CONTEXT.md` | Domain glossary + system map (ubiquitous language) | `fe-setup`, `fe-grill-with-docs` |
 | `docs/adr/` | Architecture decision records | `fe-grill-with-docs`, `fe-deepen` |
-| `docs/agents/config.md` | Tracker (Jira/GitHub/local) + triage labels + doc layout | `fe-setup` |
+| `docs/agents/config.md` | Jira project + status map + AFK/triage labels + doc layout | `fe-setup` |
 | `docs/agents/team-rules.md` | Collaboration rules | `fe-distill-rules` |
 | `docs/agents/coaching-notes/` | One note per PR (+ a token-cost record per autonomous run) | `fe-coach`, `fe-ship` runner |
 
@@ -104,7 +108,7 @@ The collaboration loop is the point: a gap caught at the **back** of the cycle (
 
 The align layer, the shared-memory idea, and several implement/improve skills are inspired by **[Matt Pocock's `skills` repository](https://github.com/mattpocock/skills)** — `fe-grill-with-docs`, `fe-to-prd`, `fe-to-issues`, `fe-tdd`, `fe-deepen`, `fe-diagnose`, `fe-zoom-out`, `fe-handoff` are re-expressions of his, built around widely-used engineering practices: domain-driven design (Evans), deep modules (Ousterhout), tracer bullets (Hunt & Thomas), and TDD (Beck). Each derived skill carries a one-line credit.
 
-The Jira/Atlassian-MCP wiring, the `fe-check-setup` readiness pattern, ticket-key threading, and the slicing strategies are adapted from Rezolve's internal `rezolve-enrich-ai` agent skills.
+The Jira/Atlassian-MCP wiring, the `fe-check-setup` readiness pattern, ticket-key threading, and the vertical-slice splitting strategies follow established agile and tooling practices, refined through production use across frontend projects.
 
 Original to this set: `fe-orchestrate`, `fe-ship`, `fe-setup`, `fe-to-review`, `fe-coach`, `fe-distill-rules`, and the wiring that turns per-PR coaching into sharper team-wide alignment.
 
