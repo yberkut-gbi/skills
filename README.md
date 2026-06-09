@@ -31,7 +31,7 @@ Skills install into your agent's skills directory (e.g. `.claude/skills/`).
 
 ## Quick start
 
-1. **Set up the substrate once per repo:** run `fe-setup`. It scaffolds the shared files (`CONTEXT.md`, `docs/adr/`, `docs/agents/config.md`, `team-rules.md`, `coaching-notes/`) and wires your issue tracker — **Jira via the Atlassian MCP** by default (see [Jira](#jira-integration)), or GitHub/local. Then run `fe-check-setup` to confirm the MCP is reachable.
+1. **Set up the substrate once per repo:** run `fe-setup`. It scaffolds the shared files (`CONTEXT.md`, `docs/adr/`, `docs/agents/config.md`, `team-rules.md`, `coaching-notes/`), installs the autonomous runner at `scripts/fe-ship.sh`, and wires your issue tracker — **Jira via the Atlassian MCP** by default (see [Jira](#jira-integration)), or GitHub/local. Then run `fe-check-setup` to confirm the MCP is reachable.
 2. **Drive a feature** with `fe-orchestrate`, or invoke any skill directly. The conductor loads the substrate, then offers: align → implement → improve.
 3. **Let the loop run.** After a batch of PRs, run `fe-distill-rules` to turn coaching notes into sharper team rules; every few days, run `fe-deepen`.
 

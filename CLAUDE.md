@@ -42,7 +42,7 @@ Skills reference Atlassian MCP tools **by function** (e.g. `getJiraIssue`, `crea
 
 ## fe-ship headless runner
 
-`skills/conduct/fe-ship/RUNNER.md` documents the `scripts/fe-ship.sh` script (meant to be placed in *target repos*) that runs `fe-ship` in a git worktree per Jira issue and captures token/cost JSON. It requires `claude`, `jq`, and `gh`. The cost records land in `docs/agents/coaching-notes/<date>-<KEY>.cost.json` on the PR branch.
+The canonical runner is a real file, `skills/conduct/fe-ship/fe-ship.sh`; `skills/conduct/fe-ship/RUNNER.md` documents it. `fe-setup` installs a copy into each *target repo* at `scripts/fe-ship.sh`. It runs `fe-ship` in a git worktree per Jira issue and captures token/cost JSON, and requires `claude`, `jq`, and `gh`. The runner's `--allowedTools` **must** include the Atlassian MCP prefix (`mcp__atlassian`, or `mcp_com_atlassian_` for Copilot) or the headless run can't read the ticket — keep `fe-ship.sh` the source of truth and edit it there, not in copies. The cost records land in `docs/agents/coaching-notes/<date>-<KEY>.cost.json` on the PR branch. A null-valued cost record means the cycle didn't run through this runner.
 
 ## Authoring a new skill
 
