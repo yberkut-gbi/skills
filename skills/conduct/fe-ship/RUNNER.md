@@ -77,6 +77,18 @@ Every autonomous run emits a `"type":"result"` object the runner mines (fields v
 
 The runner writes these to `docs/agents/coaching-notes/<date>-<KEY>.cost.json` and commits it onto the PR branch. That puts the number next to the qualitative note `fe-coach` wrote during the run, so **`fe-distill-rules` can join cost to cause** — e.g. high `num_turns` + a `spec-clarity` growth_area = "this issue was too thin; run `fe-grill-with-docs` first." Cost stops being a bill and becomes a coaching signal.
 
+### Which model? (`FE_SHIP_MODEL`)
+
+The runner defaults to **`opus`** (`claude-opus-4-8`), and that's the right default for the *unattended* path — not a reflex. The headless run has **no human in the loop**, so the judgment calls fe-ship leans on (is this issue actually ship-ready? is this a decision to stop-and-escalate or proceed? did self-review catch the subtle bug?) happen with nobody watching, and whatever the model misses leaks straight to the PR reviewer. Long-horizon, autonomous agentic execution is exactly where Opus 4.8 leads, and the price gap over Sonnet 4.6 is only ~1.67× per token ($5/$25 vs $3/$15 per 1M) — narrower still in practice, since the more capable model usually needs fewer turns and less rework (watch `num_turns` in the cost records).
+
+**Downshift to Sonnet when the ticket is genuinely mechanical** — a tightly-scoped, well-specified change where the spec leaves nothing to judge (a rename, a config bump, a copy change, deleting a dead path). For a fleet of those, the ~40% per-token saving is real and the green gate still backstops correctness:
+
+```bash
+FE_SHIP_MODEL=sonnet scripts/fe-ship.sh ABC-123 ABC-124
+```
+
+Don't drop below Sonnet for shipping — Haiku isn't sized for the green-gate-and-self-review loop. And `fe-distill-rules` reads the per-model spend in the cost records, so if Opus is routinely doing work Sonnet could have, that shows up as a signal to retune this default.
+
 ## Permissions & safety, briefly
 
 - **Default:** scoped `--allowedTools` + `--permission-mode acceptEdits`, run in a worktree. Unattended and bounded.

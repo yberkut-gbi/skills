@@ -8,7 +8,8 @@
 #
 # Usage:   scripts/fe-ship.sh ABC-123 ABC-124 ...
 # Needs:   claude, jq, gh   (and git)
-# Env:     FE_SHIP_MODEL      (default: opus)
+# Env:     FE_SHIP_MODEL      (default: opus — see RUNNER.md "Which model?";
+#                              downshift to sonnet for mechanical, well-scoped tickets)
 #          FE_SHIP_MAX_TURNS  (default: 60)
 #          FE_SHIP_TOOLS      (override the --allowedTools allowlist)
 #          FE_SHIP_MCP_PREFIX (Atlassian MCP tool prefix; default: mcp__atlassian)
