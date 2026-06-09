@@ -18,7 +18,7 @@ Skills marked ★ in the README are "rich" — a `SKILL.md` core plus companion 
 
 | Category | Path | Purpose |
 |---|---|---|
-| `conduct` | `skills/conduct/` | End-to-end conductors: `fe-orchestrate` (interactive) and `fe-ship` (autonomous headless) |
+| `conduct` | `skills/conduct/` | The end-to-end conductor `fe-ship` — one recipe, two modes: interactive (checks in) or unattended/headless (autonomous) |
 | `shared-memory` | `skills/shared-memory/` | Substrate setup (`fe-setup`) and verification (`fe-check-setup`) |
 | `align` | `skills/align/` | Pre-build alignment: grilling, PRD, issue slicing |
 | `implement` | `skills/implement/` | TDD loop, PR creation |
@@ -40,11 +40,11 @@ Skills are stateless prompts but read/write a small set of files in the **target
 
 Jira is the **only** issue tracker the skills use (GitHub hosts code/PRs via the `gh` CLI but is not an issue tracker here — no GitHub MCP). Skills reference Atlassian MCP tools **by function** (e.g. `getJiraIssue`, `editJiraIssue`, `transitionJiraIssue`), never by hardcoded tool ID, so the same prompts work under any agent prefix (`mcp__atlassian__*` for Claude Code, `mcp_com_atlassian_*` for Copilot). The full tool map and per-IDE MCP config snippets live in `skills/shared-memory/fe-setup/MCP-SETUP.md`.
 
-**The ticket protocol** (defined once in `MCP-SETUP.md`, referenced by the work skills `fe-tdd`/`fe-orchestrate`/`fe-ship`/`fe-diagnose`): on starting an existing ticket, claim it — assign self if unassigned; if someone else's, report who+when and ask (interactive) or stop-and-escalate (autonomous `fe-ship`); transition status to match the work (In Progress → In Review, names from the `statuses:` map in `config.md`); `fe-ship` sets an `AFK` label for autonomous runs, cleared by `fe-to-review`.
+**The ticket protocol** (defined once in `MCP-SETUP.md`, referenced by the work skills `fe-tdd`/`fe-ship`/`fe-diagnose`): on starting an existing ticket, claim it — assign self if unassigned; if someone else's, report who+when and ask (interactive) or stop-and-escalate (autonomous `fe-ship`); transition status to match the work (In Progress → In Review, names from the `statuses:` map in `config.md`); `fe-ship` sets an `AFK` label for autonomous runs, cleared by `fe-to-review`.
 
 ## fe-ship headless runner
 
-`skills/conduct/fe-ship/RUNNER.md` documents the `scripts/fe-ship.sh` script (meant to be placed in *target repos*) that runs `fe-ship` in a git worktree per Jira issue and captures token/cost JSON. It requires `claude`, `jq`, and `gh`. The cost records land in `docs/agents/coaching-notes/<date>-<KEY>.cost.json` on the PR branch.
+The canonical runner is a real file, `skills/conduct/fe-ship/fe-ship.sh`; `skills/conduct/fe-ship/RUNNER.md` documents it. `fe-setup` installs a copy into each *target repo* at `scripts/fe-ship.sh`. It runs `fe-ship` in a git worktree per Jira issue and captures token/cost JSON, and requires `claude`, `jq`, and `gh`. The runner's `--allowedTools` **must** include the Atlassian MCP tools (`mcp__atlassian__*`, or `mcp_com_atlassian_*` for Copilot) or the headless run can't read the ticket — keep `fe-ship.sh` the source of truth and edit it there, not in copies. The cost records land in `docs/agents/coaching-notes/<date>-<KEY>.cost.json` on the PR branch. A null-valued cost record means the cycle didn't run through this runner.
 
 ## Authoring a new skill
 

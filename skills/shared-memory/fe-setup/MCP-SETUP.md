@@ -13,7 +13,7 @@ Per-agent prefix: Claude Code `mcp__atlassian__<tool>` · Copilot `mcp_com_atlas
 | Who am I | `atlassianUserInfo` | claim a ticket — get my own account id |
 | Look up an account id | `lookupJiraAccountId` | resolve an assignee by name/email |
 | Search issues (JQL) | `searchJiraIssuesUsingJql` | fe-check-setup probe; fe-ship ready-queue sweep |
-| Get an issue | `getJiraIssue` | fe-tdd, fe-orchestrate, fe-ship (fetch ticket + assignee + change history) |
+| Get an issue | `getJiraIssue` | fe-tdd, fe-ship (fetch ticket + assignee + change history) |
 | List visible projects | `getVisibleJiraProjects` | validate `jira.project` from config.md |
 | Project issue types | `getJiraProjectIssueTypesMetadata` | pick Epic/Story/Sub-task on create |
 | Create an issue | `createJiraIssue` | fe-to-prd (epic/story), fe-to-issues (stories/sub-tasks) |
@@ -25,7 +25,7 @@ Per-agent prefix: Claude Code `mcp__atlassian__<tool>` · Copilot `mcp_com_atlas
 Verified available in practice: `getJiraIssue`, `searchJiraIssuesUsingJql`. The rest are documented Atlassian Rovo tools — confirm with `fe-check-setup` (Atlassian may add/rename tools).
 
 ## The ticket protocol (assignment · status · AFK)
-Whenever a skill **begins work on an existing Jira issue**, claim it first — so the board reflects reality and two workers never collide. The work skills (`fe-tdd`, `fe-orchestrate`, `fe-ship`, `fe-diagnose`) all run this:
+Whenever a skill **begins work on an existing Jira issue**, claim it first — so the board reflects reality and two workers never collide. The work skills (`fe-tdd`, `fe-ship`, `fe-diagnose`) all run this:
 
 1. **Identify yourself** — `atlassianUserInfo` for your own account id.
 2. **Read the ticket** — `getJiraIssue`, including its change history, for the current `assignee` and *when it was last set*.
@@ -33,8 +33,8 @@ Whenever a skill **begins work on an existing Jira issue**, claim it first — s
    - **Unassigned** → assign yourself (`editJiraIssue`, set `assignee` to your account id).
    - **Already you** → continue.
    - **Someone else** → report **who** holds it and **when** it was assigned (from the change history), then resolve before touching code:
-     - *Interactive skills* (fe-orchestrate, fe-tdd, fe-diagnose) — **ask the human**: reassign to me, or stop? Act on the answer; never reassign silently.
-     - *Autonomous fe-ship* — no human is present to decide, so **never steal the ticket**. Stop and escalate: comment noting the current owner and when they were assigned, then exit.
+     - *Interactive runs* (`fe-tdd`, `fe-diagnose`, or `fe-ship` run interactively) — **ask the human**: reassign to me, or stop? Act on the answer; never reassign silently.
+     - *Autonomous `fe-ship`* (headless) — no human is present to decide, so **never steal the ticket**. Stop and escalate: comment noting the current owner and when they were assigned, then exit.
 4. **Move the status to match the work** — `getTransitionsForJiraIssue` for the target id, then `transitionJiraIssue`. Map lifecycle → your project's status name via the `statuses:` block in `config.md`:
    - starting implementation → **In Progress**
    - PR opened → **In Review**

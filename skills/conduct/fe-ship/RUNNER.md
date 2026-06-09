@@ -18,84 +18,31 @@ Do not merge; stop at the PR for human review." \
 
 - `--model sonnet` — `fe-ship` is autonomous **development** within an already-pinned spec (it stops rather than make architectural calls), so Sonnet is the right default for cost and speed. Override to Opus for an architecturally heavy ticket: `FE_SHIP_MODEL=opus`.
 - `--permission-mode acceptEdits` lets it edit files without prompting while still gating risky commands.
-- `--allowedTools` is the safety boundary — scope it to the build tools your repos actually use. **Include the Atlassian MCP tools** (`mcp__atlassian__*`, or your agent's prefix) — a headless run can't answer a permission prompt, and it needs them to claim the ticket, set the AFK label, and move the status.
+- `--allowedTools` is both the safety boundary **and the autonomy boundary**. A headless run has no human to approve a prompt, so any tool the recipe needs that isn't listed here is silently denied — and the run stalls or stops short. `fe-ship`'s very first step reads the Jira issue through the Atlassian MCP, and it needs those tools to claim the ticket, set the `AFK` label, and move the status, so **the MCP tools must be in the allowlist or the run can't even start** (`mcp__atlassian__*` for Claude Code, `mcp_com_atlassian_*` for Copilot — match yours).
 - `--max-turns` caps a runaway loop. Tune to your largest realistic slice.
 
 ## The script — Jira-native, worktree-isolated, cost-accounted
 
-Drop this in your **product** repos (e.g. `scripts/fe-ship.sh`, `chmod +x`; needs `jq`). Each Jira issue runs in its own `git worktree`, so you can ship several at once with no collisions — the Boris Cherny parallel pattern — and each run records exactly what it cost.
+The canonical runner ships with this skill as [`fe-ship.sh`](fe-ship.sh) — a real, executable file, not a snippet to retype. Each Jira issue runs in its own `git worktree`, so you can ship several at once with no collisions — the Boris Cherny parallel pattern — and each run records exactly what it cost.
+
+**Install it once per product repo.** `fe-setup` does this for you (it copies the runner into `scripts/fe-ship.sh` and `chmod +x`es it). To install by hand:
 
 ```bash
-#!/usr/bin/env bash
-# fe-ship — run one or more ready Jira issues to pre-reviewed PRs, unattended,
-# with per-run token/cost accounting fed into the coaching loop.
-# Usage: scripts/fe-ship.sh ABC-123 ABC-124 ...   (requires: claude, jq, gh)
-set -euo pipefail
-
-REPO_ROOT="$(git rev-parse --show-toplevel)"
-NAME="$(basename "$REPO_ROOT")"
-MODEL="${FE_SHIP_MODEL:-sonnet}"   # Sonnet for dev; FE_SHIP_MODEL=opus for architecturally heavy tickets
-MAX_TURNS="${FE_SHIP_MAX_TURNS:-60}"
-TOOLS="Read,Edit,Write,Bash(npm:*),Bash(pnpm:*),Bash(yarn:*),Bash(git:*),Bash(gh:*),mcp__atlassian__*"
-COSTLOG="${REPO_ROOT}/.fe-ship-cost.log"; : > "$COSTLOG"
-
-ship_one() {
-  local key="$1"
-  local wt="${REPO_ROOT}/../${NAME}-${key}"
-  echo "▶ ${key} → ${wt}"
-  git -C "$REPO_ROOT" worktree add -q "$wt" -b "feat/${key}" 2>/dev/null \
-    || git -C "$REPO_ROOT" worktree add -q "$wt" "feat/${key}"
-
-  ( cd "$wt"
-    claude -p "Use the fe-ship skill to take Jira issue ${key} to a pre-reviewed PR. Do not merge; stop at the PR for human review." \
-      --model "$MODEL" --max-turns "$MAX_TURNS" \
-      --permission-mode acceptEdits --allowedTools "$TOOLS" \
-      --output-format stream-json --verbose \
-      2>&1 | tee "fe-ship-${key}.log"
-
-    # --- cost accounting: pull the final result object from the stream ---
-    local res; res="$(grep '"type":"result"' "fe-ship-${key}.log" | tail -1 || true)"
-    if [ -z "$res" ]; then printf '%s\tNO-RESULT\t-\t-\n' "$key" >> "$COSTLOG"; return; fi
-
-    local rec
-    rec="$(printf '%s' "$res" | jq -c --arg t "$key" --arg d "$(date +%F)" '{
-      ticket: $t, date: $d,
-      outcome: (if .is_error then "error" else .terminal_reason end),
-      cost_usd: .total_cost_usd, num_turns: .num_turns, duration_ms: .duration_ms,
-      session_id: .session_id,
-      tokens: { input: .usage.input_tokens, output: .usage.output_tokens,
-                cache_read: .usage.cache_read_input_tokens,
-                cache_creation: .usage.cache_creation_input_tokens },
-      model_usage: ( .modelUsage // {} | to_entries
-                     | map({ (.key): { cost_usd: .value.costUSD,
-                                       in: .value.inputTokens, out: .value.outputTokens } })
-                     | add )
-    }' || true)"
-
-    # land the cost record beside the coaching note, on the PR branch
-    local notes="docs/agents/coaching-notes"; mkdir -p "$notes"
-    local f="${notes}/$(date +%F)-${key}.cost.json"
-    printf '%s\n' "$rec" | jq . > "$f"
-    git add "$f" >/dev/null 2>&1 \
-      && git commit -q -m "chore(${key}): autonomous run cost record" >/dev/null 2>&1 \
-      && git push -q >/dev/null 2>&1 || true
-
-    printf '%s\t$%s\t%s turns\t%s\n' \
-      "$key" "$(printf '%s' "$rec" | jq -r '.cost_usd')" \
-      "$(printf '%s' "$rec" | jq -r '.num_turns')" \
-      "$(printf '%s' "$rec" | jq -r '.outcome')" >> "$COSTLOG"
-  )
-}
-
-for key in "$@"; do ship_one "$key" & done
-wait
-
-echo; echo "── fleet cost summary ──"
-column -t -s "$(printf '\t')" "$COSTLOG" 2>/dev/null || cat "$COSTLOG"
-awk -F'\t' '{gsub(/\$/,"",$2); s+=$2} END{printf "TOTAL: $%.4f across %d run(s)\n", s, NR}' "$COSTLOG"
-echo "Per-run detail: docs/agents/coaching-notes/<date>-<KEY>.cost.json (on each PR branch)"
-echo "✓ Review the PRs (the one human gate)."
+# from your product repo, with the skills installed under your agent's skills dir:
+cp "$(find ~/.claude ~/.config -path '*conduct/fe-ship/fe-ship.sh' 2>/dev/null | head -1)" scripts/fe-ship.sh
+chmod +x scripts/fe-ship.sh        # needs: claude, jq, gh
 ```
+
+It is parameterised by environment variable, so you rarely edit it:
+
+| Env var | Default | Purpose |
+|---|---|---|
+| `FE_SHIP_MODEL` | `sonnet` | model for the headless run (override to `opus` for architecturally heavy tickets) |
+| `FE_SHIP_MAX_TURNS` | `60` | runaway-loop cap |
+| `FE_SHIP_MCP_PREFIX` | `mcp__atlassian__*` | Atlassian MCP tools (`mcp_com_atlassian_*` for Copilot) |
+| `FE_SHIP_TOOLS` | derived | full `--allowedTools` override |
+
+The runner already folds the Atlassian MCP prefix into `--allowedTools` — without it the headless run can't read the Jira issue and stalls at step 0 (see the autonomy-boundary note above). After `claude -p` exits it greps the `"type":"result"` object from the stream, transforms it with `jq` into `docs/agents/coaching-notes/<date>-<KEY>.cost.json`, and commits that record onto the PR branch.
 
 `fe-ship` threads the ticket key through the branch and PR; the `feat/${key}` worktree branch is just the staging branch it builds on. Clean up finished worktrees with `git worktree prune` / `git worktree remove`.
 
@@ -118,7 +65,7 @@ Path A is hands-off but serial; path B parallelizes and gives you the per-issue 
 
 ## Cost & efficiency accounting
 
-Every autonomous run emits a result object the runner mines (verified fields, CLI 2.1.x):
+Every autonomous run emits a `"type":"result"` object the runner mines (fields verified against CLI 2.x `--output-format stream-json`):
 
 | Field | Meaning |
 |---|---|
@@ -126,10 +73,20 @@ Every autonomous run emits a result object the runner mines (verified fields, CL
 | `usage.input_tokens` / `output_tokens` | billed tokens |
 | `usage.cache_read_input_tokens` / `cache_creation_input_tokens` | cache hits vs. fresh context (cache reads are cheap — high creation, low reads = wasteful re-priming) |
 | `num_turns` | agentic iterations (churn signal) |
-| `terminal_reason` / `is_error` | did it `complete`, or stop-and-escalate? |
-| `modelUsage` | per-model spend (e.g. Opus doing work Haiku could) |
+| `terminal_reason` (e.g. `completed`) / `is_error` | did it finish, or stop-and-escalate? |
+| `modelUsage` | per-model spend (`costUSD`, `inputTokens`, `outputTokens` per model — e.g. Opus doing work Sonnet could) |
 
 The runner writes these to `docs/agents/coaching-notes/<date>-<KEY>.cost.json` and commits it onto the PR branch. That puts the number next to the qualitative note `fe-coach` wrote during the run, so **`fe-distill-rules` can join cost to cause** — e.g. high `num_turns` + a `spec-clarity` growth_area = "this issue was too thin; run `fe-grill-with-docs` first." Cost stops being a bill and becomes a coaching signal.
+
+### Which model? (`FE_SHIP_MODEL`)
+
+The default is **`sonnet`** — `fe-ship` runs autonomous *development* against an already-pinned spec, stopping rather than making architectural calls, so Sonnet's balance of cost and speed fits the bulk of the queue. The price gap is real (Opus 4.8 is ~1.67× Sonnet 4.6 per token — $5/$25 vs $3/$15 per 1M), so reserve Opus for tickets where it earns its keep. Override per-run for an architecturally heavy or unusually ambiguous ticket:
+
+```bash
+FE_SHIP_MODEL=opus scripts/fe-ship.sh ABC-123
+```
+
+Don't drop below Sonnet for shipping — Haiku isn't sized for the green-gate-and-self-review loop. And `fe-distill-rules` reads the per-model spend in the cost records, so a miscalibrated default (Opus routinely doing work Sonnet could, or Sonnet churning turns on work that wanted Opus) shows up as a signal to retune.
 
 ## Permissions & safety, briefly
 
