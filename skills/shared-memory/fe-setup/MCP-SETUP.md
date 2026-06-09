@@ -12,7 +12,7 @@ Per-agent prefix: Claude Code `mcp__atlassian__<tool>` · Copilot `mcp_com_atlas
 | Function | Tool (base name) | Used by |
 |---|---|---|
 | Search issues (JQL) | `searchJiraIssuesUsingJql` | fe-check-setup probe; lookups |
-| Get an issue | `getJiraIssue` | fe-to-review, fe-tdd, fe-orchestrate (fetch ticket) |
+| Get an issue | `getJiraIssue` | fe-to-review, fe-tdd, fe-ship (fetch ticket) |
 | List visible projects | `getVisibleJiraProjects` | validate `jira.project` from config.md |
 | Project issue types | `getJiraProjectIssueTypesMetadata` | pick Epic/Story/Sub-task on create |
 | Create an issue | `createJiraIssue` | fe-to-prd (epic/story), fe-to-issues (stories/sub-tasks) |

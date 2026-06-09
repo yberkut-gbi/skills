@@ -38,7 +38,7 @@ Read `docs/agents/coaching-notes/`. Each note carries a `signals` block (tagged 
 ```
 
 ## How the loop closes
-`fe-grill-with-docs` and `fe-to-prd` read this file to seed their checks, and `fe-orchestrate` reads it at step 0. Updating it changes what the *next* feature's alignment focuses on. Point this out — the rules only matter if the skills aim at the same file.
+`fe-grill-with-docs` and `fe-to-prd` read this file to seed their checks, and `fe-ship` reads it at step 0. Updating it changes what the *next* feature's alignment focuses on. Point this out — the rules only matter if the skills aim at the same file.
 
 ## Cadence & caution
 Run weekly, or after ~10–20 PRs — patterns need volume. Don't over-fit a handful of notes; with few, say the sample is small and keep rules tentative. Re-synthesize as notes accumulate; bump the version, note what changed.

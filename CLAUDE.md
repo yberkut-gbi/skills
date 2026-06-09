@@ -18,7 +18,7 @@ Skills marked ★ in the README are "rich" — a `SKILL.md` core plus companion 
 
 | Category | Path | Purpose |
 |---|---|---|
-| `conduct` | `skills/conduct/` | End-to-end conductors: `fe-orchestrate` (interactive) and `fe-ship` (autonomous headless) |
+| `conduct` | `skills/conduct/` | The end-to-end conductor `fe-ship` — one recipe, two modes: interactive (checks in) or unattended/headless (autonomous) |
 | `shared-memory` | `skills/shared-memory/` | Substrate setup (`fe-setup`) and verification (`fe-check-setup`) |
 | `align` | `skills/align/` | Pre-build alignment: grilling, PRD, issue slicing |
 | `implement` | `skills/implement/` | TDD loop, PR creation |

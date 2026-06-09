@@ -32,16 +32,15 @@ Skills install into your agent's skills directory (e.g. `.claude/skills/`).
 ## Quick start
 
 1. **Set up the substrate once per repo:** run `fe-setup`. It scaffolds the shared files (`CONTEXT.md`, `docs/adr/`, `docs/agents/config.md`, `team-rules.md`, `coaching-notes/`), installs the autonomous runner at `scripts/fe-ship.sh`, and wires your issue tracker — **Jira via the Atlassian MCP** by default (see [Jira](#jira-integration)), or GitHub/local. Then run `fe-check-setup` to confirm the MCP is reachable.
-2. **Drive a feature** with `fe-orchestrate`, or invoke any skill directly. The conductor loads the substrate, then offers: align → implement → improve.
+2. **Drive a feature** with `fe-ship`, or invoke any skill directly. The conductor loads the substrate, then walks align → implement → improve — checking in with you at each step (interactive), or unattended when run headless.
 3. **Let the loop run.** After a batch of PRs, run `fe-distill-rules` to turn coaching notes into sharper team rules; every few days, run `fe-deepen`.
 
 **Going hands-off:** once an issue is spec-ready, `fe-ship` runs implement → green-gate → self-review → PR **unattended** — the only human step left is the PR review. Humans shape the spec (the `align` skills, interactive) and confirm the PR; AI owns everything between. Each autonomous run records its **token cost** beside the coaching note, so efficiency feeds the same learning loop. See [RUNNER.md](skills/conduct/fe-ship/RUNNER.md).
 
 ## The skills
 
-**Conduct** — two ways to drive the cycle.
-- `fe-orchestrate` — thin *interactive* conductor; loads the substrate, offers the path, keeps you steering.
-- `fe-ship` — the *autonomous* conductor; takes a ship-ready issue to a pre-reviewed PR headless (`claude -p` / CI), holds a hard green gate (typecheck, lint, tests, build), then stops for human review. See [running it headless](skills/conduct/fe-ship/RUNNER.md).
+**Conduct** — one conductor, two modes.
+- `fe-ship` — drives a feature through the whole cycle (align → implement → green-gate → self-review → PR → coaching note). Run it **interactively** (default — checks in at each decision, you steer) or **unattended** (headless `claude -p` / CI / `scripts/fe-ship.sh` — takes a ship-ready issue to a pre-reviewed PR with no human in the seat, holds a hard green gate, then stops for review). Same recipe, different posture. See [running it headless](skills/conduct/fe-ship/RUNNER.md).
 
 **Shared memory** — the substrate everything reads from.
 - `fe-setup` — scaffolds it once per repo; wires the tracker (Jira/GitHub/local).
@@ -106,7 +105,7 @@ The align layer, the shared-memory idea, and several implement/improve skills ar
 
 The Jira/Atlassian-MCP wiring, the `fe-check-setup` readiness pattern, ticket-key threading, and the slicing strategies are adapted from Rezolve's internal `rezolve-enrich-ai` agent skills.
 
-Original to this set: `fe-orchestrate`, `fe-ship`, `fe-setup`, `fe-to-review`, `fe-coach`, `fe-distill-rules`, and the wiring that turns per-PR coaching into sharper team-wide alignment.
+Original to this set: `fe-ship` (the two-mode conductor), `fe-setup`, `fe-to-review`, `fe-coach`, `fe-distill-rules`, and the wiring that turns per-PR coaching into sharper team-wide alignment.
 
 ## License
 
