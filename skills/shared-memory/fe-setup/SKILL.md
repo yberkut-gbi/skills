@@ -14,7 +14,7 @@ Every other fe- skill reads a small amount of shared state from the repo. This s
 - **`docs/agents/config.md`** — Jira project + status map + triage labels + doc layout (shape below).
 - **`docs/agents/team-rules.md`** — collaboration rules; starts empty, `fe-distill-rules` fills it.
 - **`docs/agents/coaching-notes/`** — one note per PR (`fe-coach`) + a token-cost record per autonomous run.
-- **`scripts/fe-ship.sh`** — the autonomous runner (`fe-ship`'s headless, worktree-isolated, cost-accounting wrapper). Without it, autonomous cycles get run interactively and the cost record is empty.
+- *(nothing to scaffold)* **the autonomous runner** — `fe-ship.sh` already ships with the `fe-ship` skill (`.claude/skills/fe-ship/fe-ship.sh` when the skill is installed in the repo, `~/.claude/skills/fe-ship/fe-ship.sh` at user level). `fe-setup` doesn't copy it anywhere — it just confirms the runner is reachable. Without a working runner, autonomous cycles get run interactively and the cost record is empty.
 - An **`## Agent skills`** block in `AGENTS.md`/`CLAUDE.md` pointing future sessions at the above.
 
 ## How to run it
@@ -26,7 +26,7 @@ Every other fe- skill reads a small amount of shared state from the repo. This s
    - **Triage labels** — the short vocabulary for sorting incoming work (e.g. `needs-triage`, `ready`, `blocked`, `wontfix`). `fe-to-prd`/`fe-to-issues` use these.
    - **Doc layout** — confirm the paths above, or adapt to the repo's conventions.
 3. **Bootstrap `CONTEXT.md`** by exploring the codebase and pulling recurring domain terms from the conversation. Define each plainly. `fe-grill-with-docs` sharpens it later.
-4. **Install the autonomous runner.** Copy the `fe-ship` skill's canonical `fe-ship.sh` into this repo's `scripts/fe-ship.sh` and `chmod +x` it — locate it with `find ~/.claude ~/.config -path '*conduct/fe-ship/fe-ship.sh'` (it sits beside `fe-ship/RUNNER.md` in the installed skills dir; if you can't find it, RUNNER.md carries the install steps). This is the only path that produces real token-cost records; skipping it means `fe-coach` can only write a null-valued cost stub. Don't edit the script — it's parameterised by env var (`FE_SHIP_MODEL`, `FE_SHIP_MAX_TURNS`, `FE_SHIP_MCP_PREFIX`).
+4. **Confirm the autonomous runner is reachable — don't copy it.** `fe-ship.sh` ships with the `fe-ship` skill, so it's already on disk: `.claude/skills/fe-ship/fe-ship.sh` when the skill is installed in this repo, or `~/.claude/skills/fe-ship/fe-ship.sh` at user level (locate it with `find .claude ~/.claude ~/.config -path '*fe-ship/fe-ship.sh'`). It computes the repo root itself, so it runs from any cwd in the repo — `ls` it to confirm it's present, then tell the user the invocation. It's the only path that produces real token-cost records; without it `fe-coach` can only write a null-valued cost stub. A committed `scripts/fe-ship.sh` wrapper is **optional**, not a default step (see `fe-ship`/RUNNER.md). Don't edit the script — it's parameterised by env var (`FE_SHIP_MODEL`, `FE_SHIP_MAX_TURNS`, `FE_SHIP_MCP_PREFIX`).
 5. Tell the user setup is complete and which skills now read these files.
 
 ## config.md shape

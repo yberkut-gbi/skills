@@ -31,7 +31,7 @@ Skills install into your agent's skills directory (e.g. `.claude/skills/`).
 
 ## Quick start
 
-1. **Set up the substrate once per repo:** run `fe-setup`. It scaffolds the shared files (`CONTEXT.md`, `docs/adr/`, `docs/agents/config.md`, `team-rules.md`, `coaching-notes/`), installs the autonomous runner at `scripts/fe-ship.sh`, and wires **Jira via the Atlassian MCP** — the only issue tracker the skills use (see [Jira](#jira-integration)). Then run `fe-check-setup` to confirm the MCP is reachable.
+1. **Set up the substrate once per repo:** run `fe-setup`. It scaffolds the shared files (`CONTEXT.md`, `docs/adr/`, `docs/agents/config.md`, `team-rules.md`, `coaching-notes/`) and wires **Jira via the Atlassian MCP** — the only issue tracker the skills use (see [Jira](#jira-integration)). The autonomous runner needs no install: it ships with the `fe-ship` skill (`.claude/skills/fe-ship/fe-ship.sh`). Then run `fe-check-setup` to confirm the MCP is reachable.
 2. **Drive a feature** with `fe-ship`, or invoke any skill directly. The conductor loads the substrate, then walks align → implement → improve — checking in with you at each step (interactive), or unattended when run headless.
 3. **Let the loop run.** After a batch of PRs, run `fe-distill-rules` to turn coaching notes into sharper team rules; every few days, run `fe-deepen`.
 
@@ -40,7 +40,7 @@ Skills install into your agent's skills directory (e.g. `.claude/skills/`).
 ## The skills
 
 **Conduct** — one conductor, two modes.
-- `fe-ship` — drives a feature through the whole cycle (align → implement → green-gate → self-review → PR → coaching note). Run it **interactively** (default — checks in at each decision, you steer) or **unattended** (headless `claude -p` / CI / `scripts/fe-ship.sh` — takes a ship-ready issue to a pre-reviewed PR with no human in the seat, holds a hard green gate, then stops for review). Same recipe, different posture. See [running it headless](skills/conduct/fe-ship/RUNNER.md).
+- `fe-ship` — drives a feature through the whole cycle (align → implement → green-gate → self-review → PR → coaching note). Run it **interactively** (default — checks in at each decision, you steer) or **unattended** (headless `claude -p` / CI / the bundled `.claude/skills/fe-ship/fe-ship.sh` runner — takes a ship-ready issue to a pre-reviewed PR with no human in the seat, holds a hard green gate, then stops for review). Same recipe, different posture. See [running it headless](skills/conduct/fe-ship/RUNNER.md).
 
 **Shared memory** — the substrate everything reads from.
 - `fe-setup` — scaffolds it once per repo; wires Jira via the Atlassian MCP.

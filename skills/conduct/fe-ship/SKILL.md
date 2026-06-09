@@ -1,6 +1,6 @@
 ---
 name: fe-ship
-description: The conductor for a feature — loads the shared memory, claims the Jira ticket, then runs one recipe end to end - align → implement test-first → hard green gate (typecheck, lint, tests, build) → self-review → open a PR → coaching note. Drives two ways from the same recipe. INTERACTIVE (default) — checks in at each decision, can start from a rough idea, the human steers. UNATTENDED — headless (`claude -p`), CI, or `scripts/fe-ship.sh`; takes a ship-ready issue to a pre-reviewed PR with no human in the seat (marking it AFK + In Progress), then stops for review, escalating instead of guessing. Use when the user says "let's build X" / "take this to a PR" (interactive), or "ship <ISSUE> autonomously" / "unattended" / "no human until PR review", or whenever invoked headless. Refuses to invent scope or steal a ticket; sequences the other skills, never reimplements them.
+description: The conductor for a feature — loads the shared memory, claims the Jira ticket, then runs one recipe end to end - align → implement test-first → hard green gate (typecheck, lint, tests, build) → self-review → open a PR → coaching note. Drives two ways from the same recipe. INTERACTIVE (default) — checks in at each decision, can start from a rough idea, the human steers. UNATTENDED — headless (`claude -p`), CI, or `.claude/skills/fe-ship/fe-ship.sh`; takes a ship-ready issue to a pre-reviewed PR with no human in the seat (marking it AFK + In Progress), then stops for review, escalating instead of guessing. Use when the user says "let's build X" / "take this to a PR" (interactive), or "ship <ISSUE> autonomously" / "unattended" / "no human until PR review", or whenever invoked headless. Refuses to invent scope or steal a ticket; sequences the other skills, never reimplements them.
 model: sonnet
 ---
 
@@ -19,7 +19,7 @@ One recipe, two postures. `fe-ship` loads the shared memory, claims the ticket, 
 | At a hard decision | **pauses and asks** | **stops and escalates** (clean note, no guess) |
 | `AFK` label + token-cost record | no | yes — set on claim / written by the runner |
 
-**Which mode am I in?** Default to **interactive**. Switch to **unattended** when you're invoked headless (`claude -p`, CI, or via `scripts/fe-ship.sh` — there is no human to answer a prompt), or when the user says "autonomously" / "unattended" / "no human until PR review".
+**Which mode am I in?** Default to **interactive**. Switch to **unattended** when you're invoked headless (`claude -p`, CI, or via `.claude/skills/fe-ship/fe-ship.sh` — there is no human to answer a prompt), or when the user says "autonomously" / "unattended" / "no human until PR review".
 
 ## How to trigger it
 
@@ -32,12 +32,12 @@ One recipe, two postures. `fe-ship` loads the shared memory, claims the ticket, 
 # one issue, headless (the Atlassian MCP must be in --allowedTools, or it can't read the ticket):
 claude -p "Use the fe-ship skill to take Jira issue EN-1234 to a pre-reviewed PR. \
 Do not merge; stop at the PR for human review." \
-  --model sonnet --max-turns 60 --permission-mode acceptEdits \
+  --model sonnet --max-turns 120 --permission-mode acceptEdits \
   --allowedTools "Read,Edit,Write,Bash(npm:*),Bash(git:*),Bash(gh:*),mcp__atlassian__*" \
   --output-format stream-json --verbose
 
-# a fleet, worktree-isolated + cost-accounted (the runner fe-setup installs):
-scripts/fe-ship.sh EN-1234 EN-1235 EN-1236
+# a fleet, worktree-isolated + cost-accounted (the runner that ships with this skill):
+.claude/skills/fe-ship/fe-ship.sh EN-1234 EN-1235 EN-1236
 ```
 The runner, the parallel/backlog patterns, the cost accounting, the model default, and the safety boundary all live in **[RUNNER.md](RUNNER.md)** — read it before running unattended.
 
