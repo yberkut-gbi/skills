@@ -62,9 +62,9 @@ The `signals` block makes the loop work — `fe-distill-rules` reads `growth_are
 ## Autonomous runs (fe-ship)
 When the cycle ran headless, you're the only witness to how it went — so always populate the **iteration-efficiency** signal and note any churn or stop-and-escalate in the prose. The "developer" being coached is the issue-and-spec quality, not a person — keep it constructive all the same.
 
-**Cost record.** The real token/cost numbers come from `scripts/fe-ship.sh`, which mines them from the `claude -p` result stream and writes `docs/agents/coaching-notes/<YYYY-MM-DD>-<KEY>.cost.json` after the run. **Don't pre-create that file when the runner is in play** — let the runner write it, so the figures are real.
+**Cost record.** The real token/cost numbers come from the runner that ships with the `fe-ship` skill (`.claude/skills/fe-ship/fe-ship.sh`), which mines them from the `claude -p` result stream and writes `docs/agents/coaching-notes/<YYYY-MM-DD>-<KEY>.cost.json` after the run. **Don't pre-create that file when the runner is in play** — let the runner write it, so the figures are real.
 
-Only write the stub yourself as a last resort: the cycle was driven some other way (interactively, or `claude -p` without the wrapper) and no result stream was captured. A null cost record is then a **signal that the autonomous path isn't wired** — `fe-setup` installs `scripts/fe-ship.sh`; if it's missing, say so. The stub keeps `fe-distill-rules` from breaking on a missing join:
+Only write the stub yourself as a last resort: the cycle was driven some other way (interactively, or `claude -p` without the runner) and no result stream was captured. A null cost record is then a **signal that the autonomous path isn't wired** — the runner ships with the skill at `.claude/skills/fe-ship/fe-ship.sh`; if the cycle didn't go through it, say so. The stub keeps `fe-distill-rules` from breaking on a missing join:
 
 ```json
 {
@@ -77,7 +77,7 @@ Only write the stub yourself as a last resort: the cycle was driven some other w
   "session_id": null,
   "tokens": { "input": null, "output": null, "cache_read": null, "cache_creation": null },
   "model_usage": null,
-  "_note": "No result stream captured — this cycle didn't run via scripts/fe-ship.sh. Install the runner with fe-setup, then ship headless for real token accounting."
+  "_note": "No result stream captured — this cycle didn't run via the fe-ship runner (.claude/skills/fe-ship/fe-ship.sh). Run it headless through that runner for real token accounting."
 }
 ```
 

@@ -2,15 +2,18 @@
 # fe-ship — run one or more ready Jira issues to pre-reviewed PRs, unattended,
 # with per-run token/cost accounting fed into the coaching loop.
 #
-# This is the CANONICAL runner. `fe-setup` installs a copy into each product
-# repo at scripts/fe-ship.sh; RUNNER.md documents it. Keep this file the source
-# of truth — edit here, not in copies.
+# This is the CANONICAL runner, and it ships beside this skill — install the
+# skill in your repo (`.claude/skills/fe-ship/fe-ship.sh`) or at the user level
+# (`~/.claude/skills/fe-ship/fe-ship.sh`) and the runner is already on disk; run
+# it directly, no copy needed. It computes the repo root with `git rev-parse`,
+# so it works from any cwd inside the target repo. RUNNER.md documents it. Keep
+# this file the source of truth — edit here, not in any copy you choose to make.
 #
-# Usage:   scripts/fe-ship.sh ABC-123 ABC-124 ...
+# Usage:   .claude/skills/fe-ship/fe-ship.sh ABC-123 ABC-124 ...
 # Needs:   claude, jq, gh   (and git)
 # Env:     FE_SHIP_MODEL      (default: sonnet — see RUNNER.md "Which model?";
 #                              override to opus for architecturally heavy tickets)
-#          FE_SHIP_MAX_TURNS  (default: 60)
+#          FE_SHIP_MAX_TURNS  (default: 120)
 #          FE_SHIP_TOOLS      (override the --allowedTools allowlist)
 #          FE_SHIP_MCP_PREFIX (Atlassian MCP tools; default: mcp__atlassian__*)
 set -euo pipefail
@@ -18,7 +21,7 @@ set -euo pipefail
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 NAME="$(basename "$REPO_ROOT")"
 MODEL="${FE_SHIP_MODEL:-sonnet}"   # Sonnet for dev; FE_SHIP_MODEL=opus for architecturally heavy tickets
-MAX_TURNS="${FE_SHIP_MAX_TURNS:-60}"
+MAX_TURNS="${FE_SHIP_MAX_TURNS:-120}"   # a real ticket (impl + green gate + self-review) burns turns; 60 stalls mid-gate
 
 # The allowlist IS the autonomy boundary. A headless run has no human to approve
 # a prompt, so any tool the recipe needs that is NOT listed here is silently

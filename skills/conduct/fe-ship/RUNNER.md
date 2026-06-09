@@ -10,7 +10,7 @@ From inside a target repo (one that has run `fe-setup`, with the tracker pointed
 claude -p "Use the fe-ship skill to take Jira issue ABC-123 to a pre-reviewed PR. \
 Do not merge; stop at the PR for human review." \
   --model sonnet \
-  --max-turns 60 \
+  --max-turns 120 \
   --permission-mode acceptEdits \
   --allowedTools "Read,Edit,Write,Bash(npm:*),Bash(pnpm:*),Bash(git:*),Bash(gh:*),mcp__atlassian__*" \
   --output-format stream-json --verbose
@@ -19,26 +19,38 @@ Do not merge; stop at the PR for human review." \
 - `--model sonnet` — `fe-ship` is autonomous **development** within an already-pinned spec (it stops rather than make architectural calls), so Sonnet is the right default for cost and speed. Override to Opus for an architecturally heavy ticket: `FE_SHIP_MODEL=opus`.
 - `--permission-mode acceptEdits` lets it edit files without prompting while still gating risky commands.
 - `--allowedTools` is both the safety boundary **and the autonomy boundary**. A headless run has no human to approve a prompt, so any tool the recipe needs that isn't listed here is silently denied — and the run stalls or stops short. `fe-ship`'s very first step reads the Jira issue through the Atlassian MCP, and it needs those tools to claim the ticket, set the `AFK` label, and move the status, so **the MCP tools must be in the allowlist or the run can't even start** (`mcp__atlassian__*` for Claude Code, `mcp_com_atlassian_*` for Copilot — match yours).
-- `--max-turns` caps a runaway loop. Tune to your largest realistic slice.
+- `--max-turns` caps a runaway loop. The default is **120** — a real ticket (implement + a full green gate + self-review + the fix loop when the gate goes red) burns turns fast, and too tight a cap stalls the run mid-gate, leaving a red branch and no PR. Tune up for large slices, not down.
 
 ## The script — Jira-native, worktree-isolated, cost-accounted
 
 The canonical runner ships with this skill as [`fe-ship.sh`](fe-ship.sh) — a real, executable file, not a snippet to retype. Each Jira issue runs in its own `git worktree`, so you can ship several at once with no collisions — the Boris Cherny parallel pattern — and each run records exactly what it cost.
 
-**Install it once per product repo.** `fe-setup` does this for you (it copies the runner into `scripts/fe-ship.sh` and `chmod +x`es it). To install by hand:
+**You don't install the runner separately — it ships with the skill.** Wherever the `fe-ship` skill is installed, the runner is already on disk beside it:
+
+- **Project-local** (the skill lives in the repo, e.g. via `npx skills` into `.claude/skills/`): `.claude/skills/fe-ship/fe-ship.sh`
+- **User-level** (installed into your home agent dir): `~/.claude/skills/fe-ship/fe-ship.sh`
+
+It computes the repo root with `git rev-parse`, so run it directly from anywhere inside the target repo — no copy step:
 
 ```bash
-# from your product repo, with the skills installed under your agent's skills dir:
-cp "$(find ~/.claude ~/.config -path '*conduct/fe-ship/fe-ship.sh' 2>/dev/null | head -1)" scripts/fe-ship.sh
-chmod +x scripts/fe-ship.sh        # needs: claude, jq, gh
+.claude/skills/fe-ship/fe-ship.sh ABC-123        # needs: claude, jq, gh
 ```
+
+Want a short, committed entry point (so teammates or CI that don't have the skill installed can run it)? Copying it into `scripts/` is an *optional convenience*, not a required install step — and the locator must search the **project** skills dir, not just your home directory:
+
+```bash
+cp "$(find .claude ~/.claude ~/.config -path '*fe-ship/fe-ship.sh' 2>/dev/null | head -1)" scripts/fe-ship.sh
+chmod +x scripts/fe-ship.sh
+```
+
+Keep `.claude/skills/fe-ship/fe-ship.sh` the source of truth; any `scripts/` copy is a wrapper you re-sync when the skill updates.
 
 It is parameterised by environment variable, so you rarely edit it:
 
 | Env var | Default | Purpose |
 |---|---|---|
 | `FE_SHIP_MODEL` | `sonnet` | model for the headless run (override to `opus` for architecturally heavy tickets) |
-| `FE_SHIP_MAX_TURNS` | `60` | runaway-loop cap |
+| `FE_SHIP_MAX_TURNS` | `120` | runaway-loop cap (a real impl + green-gate + fix loop burns turns; too low stalls mid-gate) |
 | `FE_SHIP_MCP_PREFIX` | `mcp__atlassian__*` | Atlassian MCP tools (`mcp_com_atlassian_*` for Copilot) |
 | `FE_SHIP_TOOLS` | derived | full `--allowedTools` override |
 
@@ -58,7 +70,7 @@ For each, use the fe-ship skill to take it to a pre-reviewed PR. One at a time; 
   --allowedTools "Read,Edit,Write,Bash(npm:*),Bash(git:*),Bash(gh:*),mcp__atlassian__*"
 
 # B. Ask the agent once for the ready keys, then fan out for parallelism + per-run cost:
-scripts/fe-ship.sh ABC-123 ABC-124 ABC-125
+.claude/skills/fe-ship/fe-ship.sh ABC-123 ABC-124 ABC-125
 ```
 
 Path A is hands-off but serial; path B parallelizes and gives you the per-issue cost records and fleet summary. Either way, `fe-to-review` links each PR back to its Jira ticket.
@@ -83,7 +95,7 @@ The runner writes these to `docs/agents/coaching-notes/<date>-<KEY>.cost.json` a
 The default is **`sonnet`** — `fe-ship` runs autonomous *development* against an already-pinned spec, stopping rather than making architectural calls, so Sonnet's balance of cost and speed fits the bulk of the queue. The price gap is real (Opus 4.8 is ~1.67× Sonnet 4.6 per token — $5/$25 vs $3/$15 per 1M), so reserve Opus for tickets where it earns its keep. Override per-run for an architecturally heavy or unusually ambiguous ticket:
 
 ```bash
-FE_SHIP_MODEL=opus scripts/fe-ship.sh ABC-123
+FE_SHIP_MODEL=opus .claude/skills/fe-ship/fe-ship.sh ABC-123
 ```
 
 Don't drop below Sonnet for shipping — Haiku isn't sized for the green-gate-and-self-review loop. And `fe-distill-rules` reads the per-model spend in the cost records, so a miscalibrated default (Opus routinely doing work Sonnet could, or Sonnet churning turns on work that wanted Opus) shows up as a signal to retune.
