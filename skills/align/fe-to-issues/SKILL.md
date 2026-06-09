@@ -1,6 +1,7 @@
 ---
 name: fe-to-issues
-description: Break a PRD or plan into independently-grabbable issues using vertical slices (tracer bullets), and create them on the tracker — Jira stories/sub-tasks via the Atlassian MCP, or GitHub/local per config.md. Use when the user wants to convert a spec or plan into implementation tickets, or split work an agent or teammate can pick up one at a time. Each issue is one thin end-to-end behavior with its own acceptance criteria, in the project's domain language.
+description: Break a PRD or plan into independently-grabbable issues using vertical slices (tracer bullets), and create them in Jira as stories/sub-tasks via the Atlassian MCP per config.md. Use when the user wants to convert a spec or plan into implementation tickets, or split work an agent or teammate can pick up one at a time. Each issue is one thin end-to-end behavior with its own acceptance criteria, in the project's domain language.
+model: opus
 ---
 
 # To Issues
@@ -19,10 +20,9 @@ Turn a plan into work items grabbable independently. The unit is the **vertical 
 - A link to the parent PRD/epic.
 - Labels per `docs/agents/config.md`.
 
-## Create on the tracker (per config.md)
-- **Jira** — one Story per slice (sub-tasks for steps within a slice) via Atlassian `createJiraIssue`, under the configured project key and parent epic; resolve issue-type ids with `getJiraProjectIssueTypesMetadata`. Thread the parent key.
-- **GitHub / local** — issues or markdown files per `config.md`.
+## Create in Jira (per config.md)
+One Story per slice (sub-tasks for steps within a slice) via Atlassian `createJiraIssue`, under the configured project key and parent epic; resolve issue-type ids with `getJiraProjectIssueTypesMetadata`. Thread the parent key. Leave each **unassigned** so a human or `fe-ship` claims it via the ticket protocol; mark ready slices with the `ready` label (or `ready_state` status) so `fe-ship` can find them.
 
 Keep slices small enough to finish in a sitting; order them so the earliest prove the riskiest end-to-end path first.
 
-Adapted from Matt Pocock's `to-issues`; Jira flow + slicing from rezolve-enrich-ai.
+Adapted from Matt Pocock's `to-issues`; the Jira creation flow and slicing patterns follow standard agile practice.

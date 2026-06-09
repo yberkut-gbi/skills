@@ -13,4 +13,4 @@ When a story/slice is too big or has too many branches, split it into 2–4 smal
 - Each slice independently shippable and testable; order by risk (riskiest end-to-end path first).
 - Each slice carries its own concrete acceptance criteria, not "see parent."
 
-Slicing strategies from rezolve-enrich-ai's `split-user-story`.
+These are the established vertical-slice story-splitting patterns (by workflow step, data variation, business rule, interface, and capability) used across agile teams.

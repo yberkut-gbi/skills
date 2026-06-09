@@ -1,6 +1,7 @@
 ---
 name: fe-to-prd
-description: Turn the aligned conversation context into a PRD and publish it to the tracker (a Jira epic/story via the Atlassian MCP, or GitHub/local per config.md). Use when the user wants to capture what's been discussed as a spec or PRD, ready to break into work. Runs a short pre-flight gap-check (acceptance criteria, error/edge cases, true out-of-scope) seeded by the team's recurring gaps, then synthesizes rather than re-interviewing. Acceptance criteria and edge cases are first-class fields.
+description: Turn the aligned conversation context into a PRD and publish it to Jira (an epic/story via the Atlassian MCP) per config.md. Use when the user wants to capture what's been discussed as a spec or PRD, ready to break into work. Runs a short pre-flight gap-check (acceptance criteria, error/edge cases, true out-of-scope) seeded by the team's recurring gaps, then synthesizes rather than re-interviewing. Acceptance criteria and edge cases are first-class fields.
+model: opus
 ---
 
 # To PRD
@@ -27,9 +28,7 @@ Explore the repo if you haven't. Use the `CONTEXT.md` glossary so the PRD speaks
 ```
 
 ## 4. Publish
-Publish per `docs/agents/config.md`:
-- **Jira** — create an Epic (or Story) via Atlassian `createJiraIssue` under the configured project key, mapping the fields above; tag it **`ready`**.
-- **GitHub / local** — create the issue/markdown and label it `ready`.
+Create an Epic (or Story) in Jira via Atlassian `createJiraIssue` under the project key in `docs/agents/config.md`, mapping the fields above. Mark it **ready** — set the `ready` triage label, or transition to the `ready_state` status if `config.md` defines one (`getTransitionsForJiraIssue` + `transitionJiraIssue`). Leave it **unassigned** so a human or `fe-ship` can claim it via the ticket protocol.
 
 Hand to `fe-to-issues` to break it into vertical slices.
 
