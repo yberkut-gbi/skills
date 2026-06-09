@@ -27,7 +27,7 @@ npx skills add yberkut-gbi/skills --agent claude-code
 npx skills list
 ```
 
-Skills install into your agent's skills directory (e.g. `.claude/skills/`). The CLI records the set in `.skills.json` and `skills-lock.json` — commit those so the whole team and CI get the same skills.
+Skills install into your agent's skills directory (e.g. `.claude/skills/`).
 
 ## Quick start
 
