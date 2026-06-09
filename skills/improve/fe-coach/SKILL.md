@@ -1,6 +1,7 @@
 ---
 name: fe-coach
 description: After a feature reaches a PR, write a growth-oriented coaching note on the developer's human–AI collaboration during the cycle — how clearly they framed the work, what context they supplied, where ambiguity caused rework. Use at the end of every feature/PR cycle, or when the user asks for a coaching note, a collaboration retro, or feedback on how a PR was driven. Produces a markdown note plus a structured signals block that fe-distill-rules aggregates into team rules. For autonomous (fe-ship) runs it also reflects on efficiency — turns, escalations, rework — pairing with the token-cost record the runner attaches. A coaching tool, not a code review or performance evaluation.
+model: opus
 ---
 
 # PR Coaching Note (Human–AI Collaboration)
@@ -33,7 +34,7 @@ Lead with real, specific strengths. Give 1–3 concrete opportunities: observati
 Save to `docs/agents/coaching-notes/<YYYY-MM-DD>-pr-<number>-<author>.md`:
 ```
 ---
-author: <github-username or "agent" for autonomous runs>
+author: <git/PR author, or "agent" for autonomous runs>
 ticket: <JIRA-KEY>          # join key for the cost record on autonomous runs
 pr: <url or number>
 date: <YYYY-MM-DD>

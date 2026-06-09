@@ -1,6 +1,7 @@
 ---
 name: fe-distill-rules
 description: Aggregate the accumulated fe-coach notes into team collaboration rules that the align and implement skills load to work better with your developers. Use when the user wants to review collaboration trends across PRs, synthesize or update team rules, or asks "what patterns are we seeing in how people work with AI". Reads the coaching-notes folder, finds recurring human–AI collaboration gaps (overall and per developer), joins the autonomous-run cost records to surface efficiency and spend trends, and writes the versioned docs/agents/team-rules.md. Run periodically after a batch of PRs, not after every one.
+model: opus
 ---
 
 # Distill Rules

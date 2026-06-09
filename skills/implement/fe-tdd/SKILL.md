@@ -1,6 +1,7 @@
 ---
 name: fe-tdd
-description: Implement features or fix bugs test-first, one vertical slice at a time — red (failing test at the right seam) → green (minimal code) → refactor (toward deep, simple-interface modules). Use whenever writing code to satisfy a requirement and tests are expected, especially inside the lifecycle. Detects the test framework, captures the acceptance criteria, fetches the Jira ticket when a key is given, and logs any test-first escape hatch.
+description: Implement features or fix bugs test-first, one vertical slice at a time — red (failing test at the right seam) → green (minimal code) → refactor (toward deep, simple-interface modules). Use whenever writing code to satisfy a requirement and tests are expected, especially inside the lifecycle. Detects the test framework, captures the acceptance criteria, claims the Jira ticket and moves it to In Progress when a key is given, and logs any test-first escape hatch.
+model: sonnet
 ---
 
 # Test-First Implementation
@@ -12,6 +13,8 @@ Learn how the repo tests — language, framework, runner, where tests live, nami
 
 ## Capture what you're building to
 Restate the slice's acceptance criteria before the loop. If given a Jira key, fetch the ticket (Atlassian `getJiraIssue` — tool map in `fe-setup`/MCP-SETUP.md) and read its title/description/AC; otherwise agree them with the user. Thread the ticket key through branch and commits.
+
+**Claim the ticket first.** Before writing the first test, run the ticket protocol (`fe-setup`/MCP-SETUP.md): assign yourself if it's unassigned; if it's held by someone else, report who and when and ask the human before continuing; then move it to **In Progress** (`statuses.in_progress` in `config.md`) so the board shows the work is live.
 
 ## The loop (per slice)
 1. **Name the slice.** Smallest useful end-to-end behavior. If vague, pin the acceptance criterion before the test — guessing here is the top source of rework.

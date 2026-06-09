@@ -1,6 +1,7 @@
 ---
 name: fe-handoff
 description: Compact the current session into a handoff document so a fresh agent — or another person — can pick up the work without losing context. Use when wrapping up mid-task, switching models or threads, or passing work to a teammate, or when the user says "hand this off", "write a handoff", or "save the context". References existing artifacts by path instead of duplicating them, suggests which skills to run next, and redacts anything sensitive.
+model: sonnet
 ---
 
 # Handoff

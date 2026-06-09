@@ -1,6 +1,7 @@
 ---
 name: fe-grill-with-docs
 description: Before building, run an alignment session that stress-tests the plan against the project's domain model and documented decisions — challenging assumptions, sharpening terminology, surfacing the unresolved decisions that cause rework, and updating CONTEXT.md and ADRs inline. Use when the user has a plan, feature idea, or design and wants to get aligned before code, or says "grill me", "stress-test this", or "are we aligned".
+model: opus
 ---
 
 # Grill With Docs

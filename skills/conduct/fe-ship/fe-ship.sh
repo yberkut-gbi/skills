@@ -8,25 +8,25 @@
 #
 # Usage:   scripts/fe-ship.sh ABC-123 ABC-124 ...
 # Needs:   claude, jq, gh   (and git)
-# Env:     FE_SHIP_MODEL      (default: opus — see RUNNER.md "Which model?";
-#                              downshift to sonnet for mechanical, well-scoped tickets)
+# Env:     FE_SHIP_MODEL      (default: sonnet — see RUNNER.md "Which model?";
+#                              override to opus for architecturally heavy tickets)
 #          FE_SHIP_MAX_TURNS  (default: 60)
 #          FE_SHIP_TOOLS      (override the --allowedTools allowlist)
-#          FE_SHIP_MCP_PREFIX (Atlassian MCP tool prefix; default: mcp__atlassian)
+#          FE_SHIP_MCP_PREFIX (Atlassian MCP tools; default: mcp__atlassian__*)
 set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 NAME="$(basename "$REPO_ROOT")"
-MODEL="${FE_SHIP_MODEL:-opus}"
+MODEL="${FE_SHIP_MODEL:-sonnet}"   # Sonnet for dev; FE_SHIP_MODEL=opus for architecturally heavy tickets
 MAX_TURNS="${FE_SHIP_MAX_TURNS:-60}"
 
 # The allowlist IS the autonomy boundary. A headless run has no human to approve
 # a prompt, so any tool the recipe needs that is NOT listed here is silently
 # denied — and the run stalls. fe-ship's very first step reads the Jira issue
 # through the Atlassian MCP, so the MCP tools MUST be allowed or the run can't
-# even start. The MCP prefix depends on how your agent wires the server
-# (Claude Code: mcp__atlassian; Copilot: mcp_com_atlassian_); override it if needed.
-MCP_PREFIX="${FE_SHIP_MCP_PREFIX:-mcp__atlassian}"
+# even start. The MCP tool glob depends on how your agent wires the server
+# (Claude Code: mcp__atlassian__*; Copilot: mcp_com_atlassian_*); override it if needed.
+MCP_PREFIX="${FE_SHIP_MCP_PREFIX:-mcp__atlassian__*}"
 TOOLS="${FE_SHIP_TOOLS:-Read,Edit,Write,Bash(npm:*),Bash(pnpm:*),Bash(yarn:*),Bash(git:*),Bash(gh:*),${MCP_PREFIX}}"
 
 COSTLOG="${REPO_ROOT}/.fe-ship-cost.log"; : > "$COSTLOG"

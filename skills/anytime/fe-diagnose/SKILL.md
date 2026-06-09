@@ -1,6 +1,7 @@
 ---
 name: fe-diagnose
 description: Work a hard bug or performance regression with a disciplined loop instead of guess-and-check — reproduce, minimise, hypothesise, instrument, fix, then add a regression test. Use when the user is stuck on a bug, a flaky failure, or a slowdown, or says "diagnose", "why is this failing", or "track down this regression". Grounds understanding in CONTEXT.md and leaves a test behind so the bug can't return silently.
+model: sonnet
 ---
 
 # Diagnose
@@ -17,6 +18,7 @@ Hard bugs reward discipline, not intuition-led poking. A tight loop that keeps y
 
 ## Notes
 - Read `CONTEXT.md` for the right domain terms and the area you're in.
+- If a Jira ticket is in play, claim it via the ticket protocol (`fe-setup`/MCP-SETUP.md) and move it to **In Progress** before the fix.
 - Change one thing at a time — change several and you've learned nothing about which mattered.
 - If the cause is a design problem, not a one-off, note it for `fe-deepen`.
 

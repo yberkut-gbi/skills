@@ -1,6 +1,7 @@
 ---
 name: fe-deepen
 description: Find and act on opportunities to deepen a codebase's design — turn shallow modules into deep ones (simple interfaces over real implementation depth), improving testability and AI-navigability. Use when the user wants to improve architecture, find refactoring opportunities, reduce coupling, simplify wide interfaces, or rescue a codebase drifting toward a ball of mud. Run periodically.
+model: opus
 ---
 
 # Deepen the Architecture

@@ -1,6 +1,7 @@
 ---
 name: fe-zoom-out
 description: Give a higher-level, big-picture perspective on a section of code instead of diving line-by-line. Use when you or the user are unfamiliar with an area and need to understand what it does, how it fits the wider system, and where its boundaries are before changing it. Triggered by "zoom out", "give me the big picture", "how does this fit together", or general unfamiliarity with part of the codebase.
+model: opus
 ---
 
 # Zoom Out
