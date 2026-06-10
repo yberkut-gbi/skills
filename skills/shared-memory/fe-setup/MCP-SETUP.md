@@ -59,11 +59,11 @@ Single source of truth for where each agent/IDE places its MCP config. Reference
 | **Copilot / VS Code** | macOS | `servers` | `~/Library/Application Support/Code/User/mcp.json` | No — user-global |
 | **Copilot / VS Code** | Windows | `servers` | `%APPDATA%\Code\User\mcp.json` | No — user-global |
 | **Copilot / VS Code** | Linux / WSL2 | `servers` | `~/.config/Code/User/mcp.json` | No — user-global |
-| **Copilot / WebStorm** | macOS | `servers` | `~/Library/Application Support/JetBrains/<product>/github-copilot/mcp.json` | No — user-global |
-| **Copilot / WebStorm** | Windows | `servers` | `%APPDATA%\JetBrains\<product>\github-copilot\mcp.json` | No — user-global |
-| **Copilot / WebStorm** | Linux / WSL2 | `servers` | `~/.config/JetBrains/<product>/github-copilot/mcp.json` | No — user-global |
+| **Copilot / WebStorm** | macOS | `servers` | `~/.config/github-copilot/intellij/mcp.json` | No — user-global |
+| **Copilot / WebStorm** | Windows | `servers` | `%APPDATA%\github-copilot\intellij\mcp.json` | No — user-global |
+| **Copilot / WebStorm** | Linux / WSL2 | `servers` | `~/.config/github-copilot/intellij/mcp.json` | No — user-global |
 
-`<product>` for WebStorm is the IDE + version directory (e.g. `WebStorm2024.3`). Claude Desktop has no committable config — all installs are user-global.
+Claude Desktop has no committable config — all installs are user-global.
 
 ### Config snippets
 
