@@ -8,6 +8,9 @@ model: opus
 
 Turn a plan into work items grabbable independently. The unit is the **vertical slice** (tracer bullet): a thin path through the whole stack delivering one observable behavior, not a horizontal layer that delivers nothing alone. Sliced this way each issue ships without waiting on the others — which is what lets a human and an agent work in parallel.
 
+## 0. Prerequisite preflight
+Run the preflight defined in `fe-setup`/MCP-SETUP.md (§ "Prerequisite preflight — referenced by the publish skills"): verify `docs/agents/config.md` exists with `jira.cloud_url`, `jira.project`, and `statuses:`; confirm at least one substrate file is present (`CONTEXT.md` or `docs/agents/team-rules.md`); call `atlassianUserInfo` to confirm the MCP is reachable; call `getAccessibleAtlassianResources` and match the result against `jira.cloud_url`. If any check fails, emit the exact notice from that section and stop. *Standalone shorthand (MCP-SETUP.md not in context): confirm `docs/agents/config.md` exists and `atlassianUserInfo` is callable; if either fails, tell the user to run `fe-setup` first.*
+
 ## How to run it
 - Work from the PRD/plan in context. If given an issue/Jira reference, fetch it first (Atlassian `getJiraIssue` — tool map in `fe-setup`/MCP-SETUP.md) and read its full body + comments.
 - Explore the codebase to ground slices in the real current state.
@@ -22,6 +25,8 @@ Turn a plan into work items grabbable independently. The unit is the **vertical 
 
 ## Create in Jira (per config.md)
 One Story per slice (sub-tasks for steps within a slice) via Atlassian `createJiraIssue`, under the configured project key and parent epic; resolve issue-type ids with `getJiraProjectIssueTypesMetadata`. Thread the parent key. Leave each **unassigned** so a human or `fe-ship` claims it via the ticket protocol; mark ready slices with the `ready` label (or `ready_state` status) so `fe-ship` can find them.
+
+If the Atlassian MCP is unreachable, follow the fallback in `fe-setup`/MCP-SETUP.md (§ "Publish & degraded-mode fallback"): save each slice's payload to `docs/agents/holding/<date>-fe-to-issues-<KEY>.md` and emit the manual hand-off steps. *Standalone shorthand: write a holding doc per slice and surface the `createJiraIssue` calls for the human to run.*
 
 Keep slices small enough to finish in a sitting; order them so the earliest prove the riskiest end-to-end path first.
 
