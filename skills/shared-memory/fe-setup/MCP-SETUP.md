@@ -94,3 +94,70 @@ After adding the server, you'll be prompted to authenticate with your Atlassian 
 Run `fe-check-setup` to confirm the server is available before tracker-dependent skills (`fe-to-prd`, `fe-to-issues`, `fe-to-review`) run.
 
 Each snippet is per agent/IDE — adapt the server key and URL to your setup; the function-based tool map keeps the skills portable across them.
+
+---
+
+## Prerequisite preflight — referenced by the publish skills
+
+> **Defined here, referenced by `fe-to-prd`, `fe-to-issues`, and `fe-to-review`. Do not duplicate this logic in individual skills.**
+
+Before doing any Jira work, every publish skill checks that the shared-memory substrate is in place and that the Atlassian MCP is reachable:
+
+**What to check:**
+1. `docs/agents/config.md` exists and is non-empty — contains `jira.cloud_url`, `jira.project`, and the `statuses:` block.
+2. At least one substrate file is present (`CONTEXT.md` or `docs/agents/team-rules.md`) — confirms `fe-setup` has run.
+3. The Atlassian MCP is reachable — call `atlassianUserInfo`; if it throws or returns an error, the server is down or not configured.
+
+**If any check fails, emit this exact notice and stop:**
+
+```
+fe-setup has not been run, or the Atlassian MCP is not configured.
+
+Run fe-setup first to scaffold the shared-memory substrate and configure
+the Jira MCP connection, then retry this skill.
+
+Missing: <list the specific file or tool that failed the check>
+```
+
+Do not guess or proceed past a failed preflight. A corrupted substrate is harder to recover than a clean stop.
+
+---
+
+## Publish & degraded-mode fallback — referenced by the publish skills
+
+> **Defined here, referenced by `fe-to-prd`, `fe-to-issues`, and `fe-to-review`. Do not duplicate this logic in individual skills.**
+
+When the Atlassian MCP tools are not callable (network error, auth failure, tool not found), a publish skill **must not silently discard its output**. Instead:
+
+**1. Save a holding doc.**
+Write the full intended Jira payload to `docs/agents/holding/<YYYY-MM-DD>-<SKILL>-<KEY>.md` (e.g. `docs/agents/holding/2025-06-10-fe-to-prd-EN-1234.md`). The file must contain everything needed to reproduce the call manually: the issue type, summary, description (in full), parent link, labels, and any other fields the skill would have set.
+
+**2. Emit the exact hand-off steps for the user.**
+Print these steps verbatim (substituting real values):
+
+```
+Atlassian MCP is unreachable — Jira was not updated automatically.
+
+To complete this step manually:
+
+  createJiraIssue:
+    cloudId: <value from docs/agents/config.md jira.cloud_url>
+    projectKey: <value from docs/agents/config.md jira.project>
+    issueType: <Story | Epic | Sub-task>
+    summary: "<summary>"
+    description: "<description>"
+    parent: <parent issue key, if applicable>
+    labels: [<labels>]
+
+  After creating the issue, link it back:
+  editJiraIssue:
+    issueIdOrKey: <new issue key>
+    fields:
+      <any additional fields the skill would have set>
+
+The holding doc is at: docs/agents/holding/<filename>
+```
+
+**3. Do not retry silently.** If the call fails, fall through to the holding doc immediately. Do not loop or swallow the error. Surface it to the human and stop.
+
+**Scope:** This fallback covers the *Jira write* leg only. If the skill writes files to the repo (a PRD doc, a coaching note, a PR branch), it should still complete those steps — the fallback is for the tracker update, not the whole skill.
