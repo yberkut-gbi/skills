@@ -40,6 +40,8 @@ Skills are stateless prompts but read/write a small set of files in the **target
 
 Jira is the **only** issue tracker the skills use (GitHub hosts code/PRs via the `gh` CLI but is not an issue tracker here — no GitHub MCP). Skills reference Atlassian MCP tools **by function** (e.g. `getJiraIssue`, `editJiraIssue`, `transitionJiraIssue`), never by hardcoded tool ID, so the same prompts work under any agent prefix (`mcp__atlassian__*` for Claude Code, `mcp_com_atlassian_*` for Copilot). The full tool map and per-IDE MCP config snippets live in `skills/shared-memory/fe-setup/MCP-SETUP.md`.
 
+**Publish convention (prereq preflight + fallback):** `MCP-SETUP.md` is also the **single definition point** for two shared behaviours used by the three publish skills (`fe-to-prd`, `fe-to-issues`, `fe-to-review`): the *prerequisite preflight* (verify substrate + MCP before any Jira write) and the *publish & degraded-mode fallback* (save a holding doc + emit hand-off steps when the MCP is unreachable). Both are defined once in `MCP-SETUP.md` §§ "Prerequisite preflight" and "Publish & degraded-mode fallback" and **referenced, not duplicated**, by the individual skills.
+
 **The ticket protocol** (defined once in `MCP-SETUP.md`, referenced by the work skills `fe-tdd`/`fe-ship`/`fe-diagnose`): on starting an existing ticket, claim it — assign self if unassigned; if someone else's, report who+when and ask (interactive) or stop-and-escalate (autonomous `fe-ship`); transition status to match the work (In Progress → In Review, names from the `statuses:` map in `config.md`).
 
 ## fe-ship headless runner
