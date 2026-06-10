@@ -11,20 +11,39 @@ Per-agent prefix: Claude Code `mcp__atlassian__<tool>` · Copilot `mcp_com_atlas
 | Function | Tool (base name) | Used by |
 |---|---|---|
 | Who am I | `atlassianUserInfo` | claim a ticket — get my own account id |
+| List accessible sites (resolve cloudId) | `getAccessibleAtlassianResources` | **first call of any session** — resolve the cloudId before any Jira read/write |
 | Look up an account id | `lookupJiraAccountId` | resolve an assignee by name/email |
 | Search issues (JQL) | `searchJiraIssuesUsingJql` | fe-check-setup probe; fe-ship ready-queue sweep |
 | Get an issue | `getJiraIssue` | fe-tdd, fe-ship (fetch ticket + assignee + change history) |
 | List visible projects | `getVisibleJiraProjects` | validate `jira.project` from config.md |
 | Project issue types | `getJiraProjectIssueTypesMetadata` | pick Epic/Story/Sub-task on create |
 | Create an issue | `createJiraIssue` | fe-to-prd (epic/story), fe-to-issues (stories/sub-tasks) |
-| Edit an issue | `editJiraIssue` | set the **assignee**; add/remove **labels** (e.g. `AFK`) |
+| Edit an issue | `editJiraIssue` | set the **assignee**; add/remove **labels** |
 | Get transitions | `getTransitionsForJiraIssue` | find the id for the target status |
 | Transition an issue | `transitionJiraIssue` | move status: In Progress, In Review, ready |
 | Comment on an issue | `addCommentToJiraIssue` | fe-to-review (link the PR); stop-and-escalate notes |
 
-Verified available in practice: `getJiraIssue`, `searchJiraIssuesUsingJql`. The rest are documented Atlassian Rovo tools — confirm with `fe-check-setup` (Atlassian may add/rename tools).
+Verified available in practice: `getJiraIssue`, `searchJiraIssuesUsingJql`, `getAccessibleAtlassianResources`. The rest are documented Atlassian Rovo tools — confirm with `fe-check-setup` (Atlassian may add/rename tools).
 
-## The ticket protocol (assignment · status · AFK)
+## Resolving the cloudId (do this first — never guess the site)
+
+Every Jira/Confluence tool needs a **cloudId**. The Rovo MCP only honours a cloudId the OAuth grant **explicitly** covers. Inferring one from the project key or a familiar company name fails hard:
+
+```
+Cloud id: <uuid> isn't explicitly granted by the user.
+```
+
+So before the first Jira read or write in a session, resolve the cloudId — don't hardcode or guess it:
+
+1. **Call `getAccessibleAtlassianResources`** — it returns every site the current OAuth token can reach, each with its `id` (the cloudId, a UUID) and `url` (e.g. `https://your-org.atlassian.net`).
+2. **Pick the site** whose `url` matches `jira.cloud_url` in `docs/agents/config.md`. If `config.md` stores a hostname rather than a UUID, you may pass that hostname as `cloudId` directly — the tools accept either a UUID **or** a site URL — but if that 401s, fall back to the UUID from step 1.
+3. **Reuse that cloudId** for every subsequent call in the session.
+
+If `getAccessibleAtlassianResources` returns **zero** sites, the OAuth scope never completed — re-run the IDE's MCP auth (see *Config per agent / IDE*). If it returns a site but **not** the one in `config.md`, the signed-in account lacks access to that org — surface this to the human rather than silently using the wrong site.
+
+> **Keep `config.md` honest.** After resolving, make sure `jira.cloud_url` holds the exact `url` (or its UUID) returned by `getAccessibleAtlassianResources`, so later runs resolve on the first try.
+
+## The ticket protocol (assignment · status)
 Whenever a skill **begins work on an existing Jira issue**, claim it first — so the board reflects reality and two workers never collide. The work skills (`fe-tdd`, `fe-ship`, `fe-diagnose`) all run this:
 
 1. **Identify yourself** — `atlassianUserInfo` for your own account id.
@@ -40,7 +59,6 @@ Whenever a skill **begins work on an existing Jira issue**, claim it first — s
    - PR opened → **In Review** (some projects call this **Code Review** — always use the name from `config.md`)
    - (fe-to-prd marks a fresh spec → **ready**)
    - **Re-fetch transitions after every status move.** The available transitions change with each status — for example, "Code Review" is only offered from In Progress, not from Opened. Never reuse a transition list across two consecutive moves; always call `getTransitionsForJiraIssue` again before the next transition.
-5. **AFK label — autonomous runs only.** When `fe-ship` picks up a ticket, add the **`AFK`** label (`editJiraIssue`, name from `jira.afk_label` in `config.md`) so humans scanning the board see the work is being driven away-from-keyboard by an agent. `fe-to-review` removes it once the PR is up and the ticket is back in human hands.
 
 ## Config per agent / IDE
 
@@ -107,6 +125,7 @@ Before doing any Jira work, every publish skill checks that the shared-memory su
 1. `docs/agents/config.md` exists and is non-empty — contains `jira.cloud_url`, `jira.project`, and the `statuses:` block.
 2. At least one substrate file is present (`CONTEXT.md` or `docs/agents/team-rules.md`) — confirms `fe-setup` has run.
 3. The Atlassian MCP is reachable — call `atlassianUserInfo`; if it throws or returns an error, the server is down or not configured.
+4. The target site is granted — call `getAccessibleAtlassianResources` and confirm a site matching `jira.cloud_url` is returned (see *Resolving the cloudId*). A reachable server that doesn't grant the configured site is still a failed preflight.
 
 **If any check fails, emit this exact notice and stop:**
 

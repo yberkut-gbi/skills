@@ -1,6 +1,6 @@
 ---
 name: fe-to-review
-description: Commit work in reviewable pieces, push the branch, and open a pull request via the gh CLI — threading the Jira ticket through the branch, commits, and PR, linking the PR back to the ticket, moving the ticket to In Review, and clearing the AFK label on autonomous runs. Use after implementing a change when the user wants to commit, push, "open a PR", or get work up for review, especially as the tail of the lifecycle.
+description: Commit work in reviewable pieces, push the branch, and open a pull request via the gh CLI — threading the Jira ticket through the branch, commits, and PR, linking the PR back to the ticket, and moving the ticket to In Review. Use after implementing a change when the user wants to commit, push, "open a PR", or get work up for review, especially as the tail of the lifecycle.
 model: sonnet
 ---
 
@@ -27,7 +27,6 @@ Never commit feature work to `main`/`master`. If that's the branch, create one f
 ## 5. Update Jira (close the loop)
 - **Link back** — comment the PR URL on the ticket (Atlassian `addCommentToJiraIssue`; tool map in `fe-setup`/MCP-SETUP.md) so ticket and PR cross-reference.
 - **Move the status** — transition the ticket to **In Review** (`statuses.in_review` in `config.md`) via `getTransitionsForJiraIssue` + `transitionJiraIssue`, so the board shows it's waiting on a human.
-- **Clear the AFK label** — if it carries the `AFK` label (an autonomous `fe-ship` run drove it), remove it now (`editJiraIssue`): the ticket is back in human hands at the PR gate.
 
 Surface the PR URL. Report CI/check status if any run. Don't merge unless the developer asks — opening the PR is where this skill stops.
 

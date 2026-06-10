@@ -1,6 +1,6 @@
 ---
 name: fe-ship
-description: The conductor for a feature — loads the shared memory, claims the Jira ticket, then runs one recipe end to end - align → implement test-first → hard green gate (typecheck, lint, tests, build) → self-review → open a PR → coaching note. Drives two ways from the same recipe. INTERACTIVE (default) — checks in at each decision, can start from a rough idea, the human steers. UNATTENDED — headless (`claude -p`), CI, or `.claude/skills/fe-ship/fe-ship.sh`; takes a ship-ready issue to a pre-reviewed PR with no human in the seat (marking it AFK + In Progress), then stops for review, escalating instead of guessing. Use when the user says "let's build X" / "take this to a PR" (interactive), or "ship <ISSUE> autonomously" / "unattended" / "no human until PR review", or whenever invoked headless. Refuses to invent scope or steal a ticket; sequences the other skills, never reimplements them.
+description: The conductor for a feature — loads the shared memory, claims the Jira ticket, then runs one recipe end to end - align → implement test-first → hard green gate (typecheck, lint, tests, build) → self-review → open a PR → coaching note. Drives two ways from the same recipe. INTERACTIVE (default) — checks in at each decision, can start from a rough idea, the human steers. UNATTENDED — headless (`claude -p`), CI, or `.claude/skills/fe-ship/fe-ship.sh`; takes a ship-ready issue to a pre-reviewed PR with no human in the seat (marking it In Progress), then stops for review, escalating instead of guessing. Use when the user says "let's build X" / "take this to a PR" (interactive), or "ship <ISSUE> autonomously" / "unattended" / "no human until PR review", or whenever invoked headless. Refuses to invent scope or steal a ticket; sequences the other skills, never reimplements them.
 model: sonnet
 ---
 
@@ -17,7 +17,7 @@ One recipe, two postures. `fe-ship` loads the shared memory, claims the ticket, 
 | Alignment (grill/PRD/slice) | offered, in scope | out of scope — planning is the human's half |
 | Contested ticket | ask the human | never steal it — stop and escalate |
 | At a hard decision | **pauses and asks** | **stops and escalates** (clean note, no guess) |
-| `AFK` label + token-cost record | no | yes — set on claim / written by the runner |
+| token-cost record | no | yes — written by the runner |
 
 **Which mode am I in?** Default to **interactive**. Switch to **unattended** when you're invoked headless (`claude -p`, CI, or via `.claude/skills/fe-ship/fe-ship.sh` — there is no human to answer a prompt), or when the user says "autonomously" / "unattended" / "no human until PR review".
 
@@ -46,11 +46,10 @@ Read `CONTEXT.md`, the relevant ADRs in `docs/adr/`, and `docs/agents/team-rules
 - *Interactive:* if `fe-setup` hasn't run, offer it; if the Jira MCP is unconfirmed, run `fe-check-setup`.
 - *Unattended:* if `fe-setup` hasn't run or the Jira MCP is unconfirmed, **stop and say so** — a headless run can't configure itself, and guessing the substrate corrupts the shared memory.
 
-## Claim the ticket (assignment · status · AFK)
+## Claim the ticket (assignment · status)
 Before any code, claim the Jira ticket so the board reflects reality and two workers never collide (full protocol in `fe-setup`/MCP-SETUP.md):
 - **Check the assignee** (`getJiraIssue` + change history). Unassigned → assign yourself (`editJiraIssue`). Already you → continue. **Held by someone else** → *interactive:* report who holds it and when it was assigned, and ask before continuing (never reassign silently); *unattended:* **never steal it** — stop and escalate (§ at a consequential decision) with a comment naming the owner.
 - **Move it to In Progress** (`statuses.in_progress` in `config.md`) so the board shows the run is live.
-- **Unattended only — mark it `AFK`** (`jira.afk_label`) so anyone scanning the board sees this ticket is being driven away-from-keyboard by an agent; `fe-to-review` clears it at the PR.
 
 ## The recipe
 
@@ -64,7 +63,7 @@ Before any code, claim the Jira ticket so the board reflects reality and two wor
 
 **4. Self-review (the pre-review half of the gate).** Before opening the PR, read your own diff as a skeptical reviewer would and run the review skills over it — `/code-review` and `/security-review` (or `/review`). Address what they surface; if you deliberately don't, say why in the PR body. The human should open an **already-vetted** PR and spend their attention on judgment, not lint and obvious bugs.
 
-**5. Open the PR — `fe-to-review` — then STOP.** Hand off to `fe-to-review`: reviewable commits, push, `gh pr create`, ticket key threaded through, PR linked back to Jira — and it moves the ticket to **In Review** and clears the **`AFK`** label, returning it to human hands. Then stop. **Never merge** — the PR is the human's gate, the one place a person decides. Surface the PR URL and the green-gate results as the last lines of your output so a script or CI step can capture them.
+**5. Open the PR — `fe-to-review` — then STOP.** Hand off to `fe-to-review`: reviewable commits, push, `gh pr create`, ticket key threaded through, PR linked back to Jira — and it moves the ticket to **In Review**, returning it to human hands. Then stop. **Never merge** — the PR is the human's gate, the one place a person decides. Surface the PR URL and the green-gate results as the last lines of your output so a script or CI step can capture them.
 
 **6. Reflect — `fe-coach`.** Write the per-PR coaching note every cycle — the loop only compounds if reflection is consistent, and `fe-distill-rules` has nothing to learn from otherwise. On an **unattended** run the token cost is also measured: the runner attaches a `<date>-<KEY>.cost.json` record beside the note (see [RUNNER.md](RUNNER.md)). Reflect on efficiency honestly — churned turns, a stop-and-escalate, rework from a thin spec — so `fe-distill-rules` can tie cost back to cause.
 
