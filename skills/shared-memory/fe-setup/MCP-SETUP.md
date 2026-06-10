@@ -42,26 +42,48 @@ Whenever a skill **begins work on an existing Jira issue**, claim it first — s
 5. **AFK label — autonomous runs only.** When `fe-ship` picks up a ticket, add the **`AFK`** label (`editJiraIssue`, name from `jira.afk_label` in `config.md`) so humans scanning the board see the work is being driven away-from-keyboard by an agent. `fe-to-review` removes it once the PR is up and the ticket is back in human hands.
 
 ## Config per agent / IDE
-The schema differs: Claude Code and Cursor use `mcpServers`; VS Code / GitHub Copilot use `servers`.
 
-**Claude Code** — `.mcp.json` at repo root (or user settings):
+Single source of truth for where each agent/IDE places its MCP config. Referenced by the fallback + preflight protocol and the publish skills — define here, reference everywhere else.
+
+| Agent / IDE | OS | Schema key | File path | Committable? |
+|---|---|---|---|---|
+| **Claude Code CLI** | all | `mcpServers` | `.mcp.json` (repo root) | Yes |
+| **Claude Code CLI** | macOS / Linux / WSL2 | `mcpServers` | `~/.claude/mcp.json` | No — user-global |
+| **Claude Code CLI** | Windows | `mcpServers` | `C:\Users\<user>\.claude\mcp.json` | No — user-global |
+| **Claude Desktop** | macOS | `mcpServers` | `~/Library/Application Support/Claude/claude_desktop_config.json` | No — user-global |
+| **Claude Desktop** | Windows | `mcpServers` | `%APPDATA%\Claude\claude_desktop_config.json` | No — user-global |
+| **Claude Desktop** | Linux | `mcpServers` | `~/.config/claude/claude_desktop_config.json` | No — user-global |
+| **Claude Desktop** | WSL2 | `mcpServers` | `~/.config/claude/claude_desktop_config.json` | No — user-global |
+| **Copilot / VS Code** | all | `servers` | `.vscode/mcp.json` (workspace) | Yes |
+| **Copilot / VS Code** | macOS | `servers` | `~/Library/Application Support/Code/User/mcp.json` | No — user-global |
+| **Copilot / VS Code** | Windows | `servers` | `%APPDATA%\Code\User\mcp.json` | No — user-global |
+| **Copilot / VS Code** | Linux / WSL2 | `servers` | `~/.config/Code/User/mcp.json` | No — user-global |
+| **Copilot / WebStorm** | macOS | `servers` | `~/Library/Application Support/JetBrains/<product>/github-copilot/mcp.json` | No — user-global |
+| **Copilot / WebStorm** | Windows | `servers` | `%APPDATA%\JetBrains\<product>\github-copilot\mcp.json` | No — user-global |
+| **Copilot / WebStorm** | Linux / WSL2 | `servers` | `~/.config/JetBrains/<product>/github-copilot/mcp.json` | No — user-global |
+
+`<product>` for WebStorm is the IDE + version directory (e.g. `WebStorm2024.3`). Claude Desktop has no committable config — all installs are user-global.
+
+### Config snippets
+
+**Claude Code CLI** — `.mcp.json` at repo root (or user-global path above):
 ```json
 { "mcpServers": {
   "atlassian": { "type": "http", "url": "https://mcp.atlassian.com/v1/mcp" }
 } }
 ```
 
-**GitHub Copilot (VS Code / JetBrains / Visual Studio)** — `mcp.json` / workspace MCP settings:
+**Copilot / VS Code or WebStorm** — `.vscode/mcp.json` (workspace) or user-global path above:
 ```json
 { "servers": {
   "com.atlassian/atlassian-mcp-server": { "type": "http", "url": "https://mcp.atlassian.com/v1/mcp" }
 } }
 ```
 
-**Cursor** — `.cursor/mcp.json`:
+**Claude Desktop** — `claude_desktop_config.json` at the user-global path above:
 ```json
 { "mcpServers": {
-  "atlassian": { "url": "https://mcp.atlassian.com/v1/mcp" }
+  "atlassian": { "type": "http", "url": "https://mcp.atlassian.com/v1/mcp" }
 } }
 ```
 
