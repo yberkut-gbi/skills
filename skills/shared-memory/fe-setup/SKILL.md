@@ -22,7 +22,6 @@ Every other fe- skill reads a small amount of shared state from the repo. This s
 2. **Walk the decisions one at a time:**
    - **Jira project** — the issue tracker is Jira (via the Atlassian MCP); record the **cloud URL** and **project key** in `config.md`. The skills target *that* project — nothing is hardcoded. Confirm the Atlassian MCP is available by running `fe-check-setup`; if missing, walk the user through their agent/IDE config in [MCP-SETUP.md](MCP-SETUP.md).
    - **Status map** — the names this project uses for *In Progress*, *In Review*, *Done*, and the **ready state** (status or label) that marks an issue picked-up-able by `fe-ship`. Status names vary per board; the skills transition by these mapped names ([MCP-SETUP.md](MCP-SETUP.md) ticket protocol). Confirm the names by inspecting an existing issue's available transitions.
-   - **AFK label** — the label `fe-ship` sets while it drives a ticket autonomously (default `AFK`), so humans can see agent-owned work on the board.
    - **Triage labels** — the short vocabulary for sorting incoming work (e.g. `needs-triage`, `ready`, `blocked`, `wontfix`). `fe-to-prd`/`fe-to-issues` use these.
    - **Doc layout** — confirm the paths above, or adapt to the repo's conventions.
 3. **Bootstrap `CONTEXT.md`** by exploring the codebase and pulling recurring domain terms from the conversation. Define each plainly. `fe-grill-with-docs` sharpens it later.
@@ -41,7 +40,6 @@ jira:
     in_review: In Review
     done: Done
   ready_state: ready          # status or label marking an issue ready for fe-ship to pick up
-  afk_label: AFK              # label fe-ship sets while driving a ticket autonomously
 triage_labels: [needs-triage, ready, blocked, wontfix]
 docs:
   adr: docs/adr/
