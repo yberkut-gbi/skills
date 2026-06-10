@@ -8,6 +8,9 @@ model: sonnet
 
 Turn finished work into a clean, reviewable pull request. Clear messages and body let a reviewer (human or AI) understand intent without re-deriving it, and make the change easy to revert or bisect.
 
+## 0. Prerequisite preflight
+Run the preflight defined in `fe-setup`/MCP-SETUP.md (§ "Prerequisite preflight — referenced by the publish skills"): verify `docs/agents/config.md` exists with `jira.cloud_url`, `jira.project`, and `statuses:`; confirm at least one substrate file is present (`CONTEXT.md` or `docs/agents/team-rules.md`); call `atlassianUserInfo` to confirm the MCP is reachable; call `getAccessibleAtlassianResources` and match the result against `jira.cloud_url`. If any check fails, emit the exact notice from that section and stop. *Standalone shorthand (MCP-SETUP.md not in context): confirm `docs/agents/config.md` exists and `atlassianUserInfo` is callable; if either fails, tell the user to run `fe-setup` first.*
+
 ## 1. Land on a feature branch
 Never commit feature work to `main`/`master`. If that's the branch, create one first. If a Jira ticket is in play, name the branch for its key (`feat/<KEY>-short-desc`, e.g. `feat/ABC-123-retry-backoff`); match the repo's branch-naming style.
 
@@ -27,6 +30,7 @@ Never commit feature work to `main`/`master`. If that's the branch, create one f
 ## 5. Update Jira (close the loop)
 - **Link back** — comment the PR URL on the ticket (Atlassian `addCommentToJiraIssue`; tool map in `fe-setup`/MCP-SETUP.md) so ticket and PR cross-reference.
 - **Move the status** — transition the ticket to **In Review** (`statuses.in_review` in `config.md`) via `getTransitionsForJiraIssue` + `transitionJiraIssue`, so the board shows it's waiting on a human.
+- If the Atlassian MCP is unreachable, follow the fallback in `fe-setup`/MCP-SETUP.md (§ "Publish & degraded-mode fallback"): save the Jira update payload to `docs/agents/holding/<date>-fe-to-review-<KEY>.md` and emit the manual hand-off steps. *Standalone shorthand: write a holding doc and surface the `addCommentToJiraIssue` + `transitionJiraIssue` calls for the human to run. The PR branch and commit are unaffected — only the Jira update is deferred.*
 
 Surface the PR URL. Report CI/check status if any run. Don't merge unless the developer asks — opening the PR is where this skill stops.
 
