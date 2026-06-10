@@ -37,8 +37,9 @@ Whenever a skill **begins work on an existing Jira issue**, claim it first — s
      - *Autonomous `fe-ship`* (headless) — no human is present to decide, so **never steal the ticket**. Stop and escalate: comment noting the current owner and when they were assigned, then exit.
 4. **Move the status to match the work** — `getTransitionsForJiraIssue` for the target id, then `transitionJiraIssue`. Map lifecycle → your project's status name via the `statuses:` block in `config.md`:
    - starting implementation → **In Progress**
-   - PR opened → **In Review**
+   - PR opened → **In Review** (some projects call this **Code Review** — always use the name from `config.md`)
    - (fe-to-prd marks a fresh spec → **ready**)
+   - **Re-fetch transitions after every status move.** The available transitions change with each status — for example, "Code Review" is only offered from In Progress, not from Opened. Never reuse a transition list across two consecutive moves; always call `getTransitionsForJiraIssue` again before the next transition.
 5. **AFK label — autonomous runs only.** When `fe-ship` picks up a ticket, add the **`AFK`** label (`editJiraIssue`, name from `jira.afk_label` in `config.md`) so humans scanning the board see the work is being driven away-from-keyboard by an agent. `fe-to-review` removes it once the PR is up and the ticket is back in human hands.
 
 ## Config per agent / IDE
