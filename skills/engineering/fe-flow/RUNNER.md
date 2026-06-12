@@ -16,7 +16,7 @@ Do not merge; stop at the PR for human review." \
   --output-format stream-json --verbose
 ```
 
-- `--model sonnet` — `fe-flow` is autonomous **development** within an already-pinned spec (it stops rather than make architectural calls), so Sonnet is the right default for cost and speed. Override to Opus for an architecturally heavy ticket: `FE_SHIP_MODEL=opus`.
+- `--model sonnet` — `fe-flow` is autonomous **development** within an already-pinned spec (it stops rather than make architectural calls), so Sonnet is the right default for cost and speed. Override to Opus for an architecturally heavy ticket: `FE_FLOW_MODEL=opus`.
 - `--permission-mode acceptEdits` lets it edit files without prompting while still gating risky commands.
 - `--allowedTools` is both the safety boundary **and the autonomy boundary**. A headless run has no human to approve a prompt, so any tool the recipe needs that isn't listed here is silently denied — and the run stalls or stops short. `fe-flow`'s very first step reads the Jira issue through the Atlassian MCP, and it needs those tools to claim the ticket and move the status, so **the MCP tools must be in the allowlist or the run can't even start** (`mcp__atlassian__*` for Claude Code, `mcp_com_atlassian_*` for Copilot — match yours).
 - `--max-turns` caps a runaway loop. The default is **120** — a real ticket (implement + a full green gate + self-review + the fix loop when the gate goes red) burns turns fast, and too tight a cap stalls the run mid-gate, leaving a red branch and no PR. Tune up for large slices, not down.
@@ -49,12 +49,12 @@ It is parameterised by environment variable, so you rarely edit it:
 
 | Env var | Default | Purpose |
 |---|---|---|
-| `FE_SHIP_MODEL` | `sonnet` | model for the headless run (override to `opus` for architecturally heavy tickets) |
-| `FE_SHIP_MAX_TURNS` | `120` | runaway-loop cap (a real impl + green-gate + fix loop burns turns; too low stalls mid-gate) |
-| `FE_SHIP_MCP_PREFIX` | `mcp__atlassian__*` | Atlassian MCP tools (`mcp_com_atlassian_*` for Copilot) |
-| `FE_SHIP_TOOLS` | derived | full `--allowedTools` override |
+| `FE_FLOW_MODEL` | `sonnet` | model for the headless run (override to `opus` for architecturally heavy tickets) |
+| `FE_FLOW_MAX_TURNS` | `120` | runaway-loop cap (a real impl + green-gate + fix loop burns turns; too low stalls mid-gate) |
+| `FE_FLOW_MCP_PREFIX` | `mcp__atlassian__*` | Atlassian MCP tools (`mcp_com_atlassian_*` for Copilot) |
+| `FE_FLOW_TOOLS` | derived | full `--allowedTools` override |
 
-The runner already folds the Atlassian MCP prefix into `--allowedTools` — without it the headless run can't read the Jira issue and stalls at step 0 (see the autonomy-boundary note above). After `claude -p` exits it greps the `"type":"result"` object from the stream, transforms it with `jq` into `docs/agents/coaching-notes/<date>-<KEY>.cost.json`, and commits that record onto the PR branch.
+The runner already folds the Atlassian MCP prefix into `--allowedTools` — without it the headless run can't read the Jira issue and stalls at step 0 (see the autonomy-boundary note above). After `claude -p` exits it greps the `"type":"result"` object from the stream, transforms it with `jq` into `docs/agents/coaching-notes/<date>-<KEY>.cost.json`, checks whether the coaching note the skill wrote has `degraded: true`, mirrors that flag into the cost record, and commits both onto the PR branch.
 
 `fe-flow` threads the ticket key through the branch and PR; the `feat/${key}` worktree branch is just the staging branch it builds on. Clean up finished worktrees with `git worktree prune` / `git worktree remove`.
 
@@ -86,19 +86,20 @@ Every autonomous run emits a `"type":"result"` object the runner mines (fields v
 | `usage.cache_read_input_tokens` / `cache_creation_input_tokens` | cache hits vs. fresh context (cache reads are cheap — high creation, low reads = wasteful re-priming) |
 | `num_turns` | agentic iterations (churn signal) |
 | `terminal_reason` (e.g. `completed`) / `is_error` | did it finish, or stop-and-escalate? |
+| `degraded` | `true` if the run fell back to single-context (sub-agents unavailable); `null` if normal. Mirrored from the coaching note's `degraded:` frontmatter field. |
 | `modelUsage` | per-model spend (`costUSD`, `inputTokens`, `outputTokens` per model — e.g. Opus doing work Sonnet could) |
 
 The runner writes these to `docs/agents/coaching-notes/<date>-<KEY>.cost.json` and commits it onto the PR branch. That puts the number next to the qualitative note `core-distill-rules` wrote during the run, so **`core-distill-rules` can join cost to cause** — e.g. high `num_turns` + a `spec-clarity` growth_area = "this issue was too thin; run `core-grill` first." Cost stops being a bill and becomes a coaching signal.
 
-### Which model? (`FE_SHIP_MODEL`)
+### Which model? (`FE_FLOW_MODEL`)
 
-The default is **`sonnet`** — `fe-flow` runs autonomous *development* against an already-pinned spec, stopping rather than making architectural calls, so Sonnet's balance of cost and speed fits the bulk of the queue. The price gap is real (Opus 4.8 is ~1.67× Sonnet 4.6 per token — $5/$25 vs $3/$15 per 1M), so reserve Opus for tickets where it earns its keep. Override per-run for an architecturally heavy or unusually ambiguous ticket:
+The default is **`sonnet`** — `fe-flow` runs autonomous *development* against an already-pinned spec, stopping rather than making architectural calls, so Sonnet's balance of cost and speed fits the bulk of the queue. The price gap is real (Opus 4.8 is ~1.67× Sonnet 4.6 per token — $5/$25 vs $3/$15 per 1M), so reserve Opus for tickets where it earns its keep. Override per-run with `FE_FLOW_MODEL` for an architecturally heavy or unusually ambiguous ticket:
 
 ```bash
-FE_SHIP_MODEL=opus .claude/skills/fe-flow/fe-flow.sh ABC-123
+FE_FLOW_MODEL=opus .claude/skills/fe-flow/fe-flow.sh ABC-123
 ```
 
-Don't drop below Sonnet for shipping — Haiku isn't sized for the green-gate-and-self-review loop. And `core-distill-rules` reads the per-model spend in the cost records, so a miscalibrated default (Opus routinely doing work Sonnet could, or Sonnet churning turns on work that wanted Opus) shows up as a signal to retune.
+Don't drop below Sonnet for shipping — Haiku isn't sized for the green-gate-and-self-review loop. And `core-distill-rules` reads the per-model spend in the cost records, so a miscalibrated default (Opus routinely doing work Sonnet could, or Sonnet churning turns on work that wanted Opus) shows up as a signal to retune. A `degraded: true` in the cost record is also a signal — if sub-agents were unavailable, the independent verifier couldn't run and the green gate was weaker than normal.
 
 ## Permissions & safety, briefly
 

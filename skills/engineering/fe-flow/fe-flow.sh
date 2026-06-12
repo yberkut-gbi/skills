@@ -11,17 +11,17 @@
 #
 # Usage:   .claude/skills/fe-flow/fe-flow.sh ABC-123 ABC-124 ...
 # Needs:   claude, jq, gh   (and git)
-# Env:     FE_SHIP_MODEL      (default: sonnet — see RUNNER.md "Which model?";
+# Env:     FE_FLOW_MODEL      (default: sonnet — see RUNNER.md "Which model?";
 #                              override to opus for architecturally heavy tickets)
-#          FE_SHIP_MAX_TURNS  (default: 120)
-#          FE_SHIP_TOOLS      (override the --allowedTools allowlist)
-#          FE_SHIP_MCP_PREFIX (Atlassian MCP tools; default: mcp__atlassian__*)
+#          FE_FLOW_MAX_TURNS  (default: 120)
+#          FE_FLOW_TOOLS      (override the --allowedTools allowlist)
+#          FE_FLOW_MCP_PREFIX (Atlassian MCP tools; default: mcp__atlassian__*)
 set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 NAME="$(basename "$REPO_ROOT")"
-MODEL="${FE_SHIP_MODEL:-sonnet}"   # Sonnet for dev; FE_SHIP_MODEL=opus for architecturally heavy tickets
-MAX_TURNS="${FE_SHIP_MAX_TURNS:-120}"   # a real ticket (impl + green gate + self-review) burns turns; 60 stalls mid-gate
+MODEL="${FE_FLOW_MODEL:-sonnet}"   # Sonnet for dev; FE_FLOW_MODEL=opus for architecturally heavy tickets
+MAX_TURNS="${FE_FLOW_MAX_TURNS:-120}"   # a real ticket (impl + green gate + self-review) burns turns; 60 stalls mid-gate
 
 # The allowlist IS the autonomy boundary. A headless run has no human to approve
 # a prompt, so any tool the recipe needs that is NOT listed here is silently
@@ -29,8 +29,8 @@ MAX_TURNS="${FE_SHIP_MAX_TURNS:-120}"   # a real ticket (impl + green gate + sel
 # through the Atlassian MCP, so the MCP tools MUST be allowed or the run can't
 # even start. The MCP tool glob depends on how your agent wires the server
 # (Claude Code: mcp__atlassian__*; Copilot: mcp_com_atlassian_*); override it if needed.
-MCP_PREFIX="${FE_SHIP_MCP_PREFIX:-mcp__atlassian__*}"
-TOOLS="${FE_SHIP_TOOLS:-Read,Edit,Write,Bash(npm:*),Bash(pnpm:*),Bash(yarn:*),Bash(git:*),Bash(gh:*),${MCP_PREFIX}}"
+MCP_PREFIX="${FE_FLOW_MCP_PREFIX:-mcp__atlassian__*}"
+TOOLS="${FE_FLOW_TOOLS:-Read,Edit,Write,Bash(npm:*),Bash(pnpm:*),Bash(yarn:*),Bash(git:*),Bash(gh:*),${MCP_PREFIX}}"
 
 COSTLOG="${REPO_ROOT}/.fe-flow-cost.log"; : > "$COSTLOG"
 
@@ -58,6 +58,7 @@ ship_one() {
       outcome: (if .is_error then "error" else (.terminal_reason // .subtype) end),
       cost_usd: .total_cost_usd, num_turns: .num_turns, duration_ms: .duration_ms,
       session_id: .session_id,
+      degraded: null,
       tokens: { input: .usage.input_tokens, output: .usage.output_tokens,
                 cache_read: .usage.cache_read_input_tokens,
                 cache_creation: .usage.cache_creation_input_tokens },
@@ -71,6 +72,12 @@ ship_one() {
     local notes="docs/agents/coaching-notes"; mkdir -p "$notes"
     local f="${notes}/$(date +%F)-${key}.cost.json"
     printf '%s\n' "$rec" | jq . > "$f"
+
+    # mirror degraded:true from coaching note if the skill set it
+    local coaching_note="${notes}/$(date +%F)-${key}.md"
+    if [ -f "$coaching_note" ] && grep -q "^degraded: *true" "$coaching_note"; then
+      jq '.degraded = true' "$f" > "${f}.tmp" && mv "${f}.tmp" "$f"
+    fi
     git add "$f" >/dev/null 2>&1 \
       && git commit -q -m "chore(${key}): autonomous run cost record" >/dev/null 2>&1 \
       && git push -q >/dev/null 2>&1 || true
