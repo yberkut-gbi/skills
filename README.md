@@ -63,6 +63,8 @@ Skills install into your agent's skills directory (e.g. `.claude/skills/`).
 - `fe-coach` — growth-oriented note on the human–AI collaboration for each PR.
 
 **Product** — decide what to build → a ship-ready issue. *(rich: ★)*
+- `pm-discover` — explore the problem space before writing a ticket: surface user pain, stakeholder context, existing patterns, and opportunity signals; output a problem statement ready for `pm-frame`.
+- `pm-frame` — shape a discovered problem into an opportunity frame: boundaries, success criteria, three solution bets (PDF-Loop), risks, and a recommended direction; output an opportunity brief ready for `core-grill` → `pm-to-prd`.
 - `pm-to-prd` — synthesize the aligned context into a PRD with a team-rules-seeded gap-check; publish to the tracker.
 - `pm-to-issues` ★ — slice the PRD into independently-grabbable vertical slices; create Jira stories/sub-tasks.
 
