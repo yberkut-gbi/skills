@@ -100,7 +100,7 @@ Do not hard-stop on sub-agent unavailability. Degraded single-context execution 
 
 **3. Green gate (hard, non-skippable) + independent verifier + bounded fix loop (spine §3).**
 
-Discover the repo's checks (typecheck, lint, tests, build) from `package.json` scripts / CI config and run **all** of them. Then spawn an **independent verifier** — a fresh sub-agent with no memory of how the code was written — to verify the implementation against the acceptance criteria.
+Discover the repo's checks (typecheck, lint, tests, build) from `package.json` scripts / CI config and run **all** of them. If `fe-verify-ui` is installed (`.claude/skills/fe-verify-ui/SKILL.md` present), run it next as the **Playwright arm**: it launches the app, screenshots key states, exercises interactions, and asserts that values came from a real API — not a stub or hardcoded placeholder. A `fe-verify-ui` failure is a gate failure; if it reports "skipped (Playwright unavailable)", continue. Then spawn an **independent verifier** — a fresh sub-agent with no memory of how the code was written — to verify the implementation against the acceptance criteria.
 
 **Bounded fix loop** (N from `config.md` `verifier.max_fix_attempts`; default 3 if absent):
 1. Verifier runs — returns pass/fail with findings.
