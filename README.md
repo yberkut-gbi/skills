@@ -58,6 +58,7 @@ Skills install into your agent's skills directory (e.g. `.claude/skills/`).
 - `fe-tdd` ★ — vertical-slice red→green→refactor toward deep modules.
 - `fe-verify-ui` — Playwright arm on the green gate: launch app → screenshot key states → exercise interactions → assert values came from a real API (fail on placeholder/mock). Pure bash + Node; optional browser-MCP enrichment; never a hard dependency.
 - `fe-to-review` — reviewable commits, push, PR via `gh`; thread the Jira ticket through and link it back.
+- `fe-run` — launch the dev server (detect command, clear ports, tail output, common-failure playbook).
 - `fe-deepen` ★ — periodic deep-module hygiene (controlled vocabulary + before/after report).
 - `fe-coach` — growth-oriented note on the human–AI collaboration for each PR.
 
@@ -75,7 +76,7 @@ Jira is the **only** issue tracker the skills use. `core-setup` wires it through
 
 **The ticket protocol.** Whenever a work skill (`fe-tdd`, `fe-flow`, `core-diagnose`) begins on an existing ticket, it *claims* it: assign yourself if it's unassigned; if it's held by someone else, report **who and when** and ask before continuing — and on autonomous `fe-flow` runs, never steal it, just stop and escalate. It then moves the status to match the work (**In Progress** → **In Review**). Full protocol and tool map in `core-setup/MCP-SETUP.md`; `core-check-setup` verifies readiness.
 
-**Model split.** Each skill pins a `model:` to match its work — **Opus** for the architectural and grilling skills (`core-grill`, `pm-to-prd`, `pm-to-issues`, `fe-deepen`, `fe-coach`, `core-distill-rules`, `core-zoom-out`), **Sonnet** for the development and mechanical ones (`fe-tdd`, `fe-verify-ui`, `fe-to-review`, `core-diagnose`, `core-handoff`, `core-setup`, `core-check-setup`, and `fe-flow`, which executes within an already-pinned spec — override to Opus via `FE_SHIP_MODEL=opus` for an architecturally heavy ticket).
+**Model split.** Each skill pins a `model:` to match its work — **Opus** for the architectural and grilling skills (`core-grill`, `pm-to-prd`, `pm-to-issues`, `fe-deepen`, `fe-coach`, `core-distill-rules`, `core-zoom-out`), **Sonnet** for the development and mechanical ones (`fe-tdd`, `fe-verify-ui`, `fe-to-review`, `fe-run`, `core-diagnose`, `core-handoff`, `core-setup`, `core-check-setup`, and `fe-flow`, which executes within an already-pinned spec — override to Opus via `FE_SHIP_MODEL=opus` for an architecturally heavy ticket).
 
 ## The shared-memory substrate
 
