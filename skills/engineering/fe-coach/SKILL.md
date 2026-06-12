@@ -39,6 +39,7 @@ ticket: <JIRA-KEY>          # join key for the cost record on autonomous runs
 pr: <url or number>
 date: <YYYY-MM-DD>
 cycle_summary: <one line — what was built>
+degraded: true              # only present on autonomous runs where sub-agents were unavailable
 signals:
   - dimension: spec-clarity
     rating: growth_area        # strong | solid | growth_area
