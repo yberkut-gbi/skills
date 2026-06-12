@@ -1,6 +1,6 @@
 ---
 name: core-check-setup
-description: Verify the Atlassian (Jira) MCP the fe- skills need is installed and available in the current agent/IDE, detect the current agent/IDE/OS to name the exact config file to create or edit, and confirm the shared-memory substrate is in place. Use when onboarding, when a tracker-dependent skill (pm-to-prd, pm-to-issues, fe-to-review, fe-flow) can't reach Jira, or to troubleshoot MCP issues. Reports a status table, names the precise file to fix for the detected environment, and offers to re-verify once the user has made the change.
+description: Verify the Atlassian (Jira) MCP the fe- skills need is installed and available in the current agent/IDE, detect the current agent/IDE/OS to name the exact config file to create or edit, and confirm the shared-memory substrate is in place — including the canonical AGENTS.md instruction-tree root, thin pointer files (CLAUDE.md, .github/copilot-instructions.md), stack.md, and docs/agents/patterns/. Use when onboarding, when a tracker-dependent skill (pm-to-prd, pm-to-issues, fe-to-review, fe-flow) can't reach Jira, or to troubleshoot MCP issues. Reports a status table, names the precise file to fix for the detected environment, and offers to re-verify once the user has made the change.
 model: sonnet
 ---
 
@@ -15,10 +15,20 @@ Run both checks; collect all findings before reporting.
 ### 1. Shared-memory substrate
 
 Check whether `core-setup` has been run in this repo:
-- Does `CONTEXT.md` exist at the repo root?
-- Does `docs/agents/config.md` exist?
 
-If either file is absent, the substrate has not been scaffolded yet.
+| File / directory | Purpose |
+|---|---|
+| `AGENTS.md` | Canonical instruction-tree root — must exist at repo root |
+| `CLAUDE.md` | Thin pointer to `AGENTS.md` — must exist; must not duplicate content |
+| `.github/copilot-instructions.md` | Thin pointer to `AGENTS.md` for Copilot — must exist |
+| `CONTEXT.md` | Domain glossary |
+| `stack.md` | Tech-stack snapshot |
+| `docs/agents/config.md` | Jira config |
+| `docs/agents/patterns/` | Patterns directory (may be empty — presence is what matters) |
+
+A **thin pointer** file passes if it exists and contains a reference to `AGENTS.md`. It fails if it contains full agent instructions instead of (or in addition to) the pointer — that indicates content duplication, not a pointer.
+
+If any file is absent or a pointer file contains duplicated content, the substrate check fails.
 
 ### 2. Jira (Atlassian MCP)
 
@@ -30,23 +40,39 @@ Optionally confirm write access too by checking for `editJiraIssue` / `transitio
 ## Report
 
 ```
-Check                           Status
-──────────────────────────────  ──────
-Shared-memory substrate         ✅ / ❌  (CONTEXT.md + docs/agents/config.md)
-Jira (Atlassian MCP)            ✅ / ❌
+Check                                    Status
+───────────────────────────────────────  ──────
+AGENTS.md (canonical root)               ✅ / ❌
+CLAUDE.md (thin pointer)                 ✅ / ❌
+.github/copilot-instructions.md (thin)   ✅ / ❌
+CONTEXT.md                               ✅ / ❌
+stack.md                                 ✅ / ❌
+docs/agents/config.md                    ✅ / ❌
+docs/agents/patterns/                    ✅ / ❌
+Jira (Atlassian MCP)                     ✅ / ❌
 ```
 
 ## Fix anything missing
 
 ### Missing substrate
 
-If `CONTEXT.md` or `docs/agents/config.md` are absent, report:
+If any substrate file is absent, report exactly which files are missing and recommend `core-setup`:
 
 ```
-Shared-memory substrate not found (CONTEXT.md and/or docs/agents/config.md are missing).
+Shared-memory substrate incomplete. Missing:
+  - <list each missing file>
 
-Run core-setup first to scaffold CONTEXT.md, docs/agents/config.md, team-rules.md,
-and the coaching-notes folder that the skills read from.
+Run core-setup to scaffold the full instruction tree: AGENTS.md (canonical root),
+CLAUDE.md + .github/copilot-instructions.md (thin pointers), CONTEXT.md, stack.md,
+docs/agents/config.md, docs/agents/team-rules.md, docs/agents/patterns/, and
+the coaching-notes folder.
+```
+
+If a pointer file exists but contains duplicated content rather than a pointer, report:
+
+```
+<file> exists but contains agent instructions instead of a thin pointer to AGENTS.md.
+Run core-setup to rewrite it as a pointer — content belongs in AGENTS.md only.
 ```
 
 ### Missing Jira MCP
