@@ -7,6 +7,7 @@
 
 ## Big picture architecture
 - Skills are organized by lifecycle stage: `align`, `implement`, `conduct`, `improve`, `shared-memory`, `anytime` (see `README.md` and `skills/*/*/SKILL.md`).
+- **Planned restructure (ADR 0001, locked 2026-06-12):** the directory layout will change to three installable groups — `skills/{core,engineering,product}/` — with skill renames (`fe-ship`→`fe-flow`, `fe-grill-with-docs`→`core-grill`, `fe-setup`→`core-setup`, `fe-to-prd`→`pm-to-prd`, etc.) and new skills (`fe-verify-ui`, `fe-run`, PM conductors). The current `skills/<category>/` layout is pre-migration; read `docs/adr/0001-three-group-restructure-and-shared-spine.md` before authoring new skills.
 - `conduct/fe-ship` is the end-to-end orchestrator; it chains alignment -> implementation -> review/PR -> reflection, **in two configurable modes**: interactive (default — checks in at each decision point, human steers) or unattended/headless (autonomous — takes a ship-ready issue to a PR with hard gates, no human in the loop until review).
 - The system depends on a **shared-memory substrate in the target repo** (not this repo), read and written by both humans and skills:
 
@@ -17,6 +18,7 @@
 | `docs/agents/config.md` | Jira project + status map + triage labels | `fe-setup` |
 | `docs/agents/team-rules.md` | Collaboration rules (distilled from coaching notes) | `fe-distill-rules` |
 | `docs/agents/coaching-notes/` | One note per PR + cost records per autonomous run | `fe-coach`, `fe-ship` runner |
+| `docs/agents/holding/` | Degraded-mode fallback — holding docs when Atlassian MCP is unreachable | publish skills (`fe-to-prd`, `fe-to-issues`, `fe-to-review`) |
 
 - Separation of concerns:
   - Strategic/architecture-heavy skills use `model: opus` (`fe-grill-with-docs`, `fe-to-prd`, `fe-to-issues`, `fe-deepen`, `fe-coach`, `fe-distill-rules`, `fe-zoom-out`).
@@ -35,6 +37,7 @@
 ## Integrations and boundaries
 - **Jira is the only issue tracker**; do not model workflow around GitHub Issues (`CLAUDE.md`, `skills/shared-memory/fe-setup/MCP-SETUP.md`).
 - Use Atlassian MCP Jira functions by capability (`getJiraIssue`, `editJiraIssue`, `transitionJiraIssue`, etc.); avoid hardcoding vendor-specific tool IDs in skill text so prompts stay portable across `mcp__atlassian__*` (Claude) and `mcp_com_atlassian_*` (Copilot).
+- **Always resolve cloudId first** — call `getAccessibleAtlassianResources` at the start of every session before any Jira read or write; pick the site whose `url` matches `jira.cloud_url` in `config.md`. Never guess or hardcode a cloudId. Re-fetch transitions (`getTransitionsForJiraIssue`) before every status move — available transitions change with each status.
 - GitHub (`gh`) is for repository/PR operations only.
 - Ticket protocol used across work skills (`fe-tdd`, `fe-ship`, `fe-diagnose`):
   - Claim ticket when starting: assign self if unassigned; if owned by someone else, report who+when and ask before continuing (interactive) or stop-and-escalate (autonomous `fe-ship`).
@@ -57,7 +60,10 @@ When authoring skills, keep these loops visible: coaching notes carry structured
 ## Practical command examples
 ```bash
 # Use skills from this registry in a target project
-npx skills install github:yberkut/fe-skills
+npx skills add yberkut-gbi/skills
+
+# Install a single skill by direct path
+npx skills add https://github.com/yberkut-gbi/skills/tree/main/skills/implement/fe-tdd
 
 # Run autonomous conductor for one or more Jira tickets (from target repo)
 .claude/skills/fe-ship/fe-ship.sh ABC-123 ABC-124
@@ -65,11 +71,18 @@ npx skills install github:yberkut/fe-skills
 # Override defaults for heavy architectural work or cost tuning
 FE_SHIP_MODEL=opus .claude/skills/fe-ship/fe-ship.sh ABC-123
 FE_SHIP_MAX_TURNS=150 .claude/skills/fe-ship/fe-ship.sh ABC-124
+
+# Override MCP tool prefix for Copilot environments (default: mcp__atlassian__*)
+FE_SHIP_MCP_PREFIX="mcp_com_atlassian_*" .claude/skills/fe-ship/fe-ship.sh ABC-123
+
+# Override the full --allowedTools list (rarely needed)
+FE_SHIP_TOOLS="Read,Edit,Write,Bash(npm:*),Bash(git:*),Bash(gh:*),mcp_com_atlassian_*" .claude/skills/fe-ship/fe-ship.sh ABC-123
 ```
 
 ## Key files to read first
 - `README.md`
 - `CLAUDE.md`
+- `docs/adr/0001-three-group-restructure-and-shared-spine.md` — locked redesign: three-group layout, renames, new skills, orchestration spine
 - `skills/shared-memory/fe-setup/MCP-SETUP.md`
 - `skills/conduct/fe-ship/SKILL.md`
 - `skills/conduct/fe-ship/fe-ship.sh`
