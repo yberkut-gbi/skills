@@ -45,7 +45,7 @@ Skills install into your agent's skills directory (e.g. `.claude/skills/`).
 ## The skills
 
 **Core** — the foundation every other group builds on. *(rich: ★)*
-- `core-setup` — scaffolds the shared-memory substrate once per repo; wires Jira via the Atlassian MCP.
+- `core-setup` ★ — scaffolds the shared-memory substrate once per repo; wires Jira via the Atlassian MCP. Reference files: [`MCP-SETUP.md`](skills/core/core-setup/MCP-SETUP.md) (tool map, ticket protocol, MCP configs), [`orchestration-spine.md`](skills/core/core-setup/orchestration-spine.md) (shared conductor contract — checkpoint dial, mandatory-fork floor, verifier loop, resume-by-artifact, sub-agent degradation), [`facilitation.md`](skills/core/core-setup/facilitation.md) (AFCI + PDF-Loop patterns, reference only).
 - `core-check-setup` — verifies the Atlassian (Jira) MCP is available.
 - `core-grill` ★ — stress-test the plan against the domain model; update `CONTEXT.md`/ADRs inline.
 - `core-diagnose` — disciplined bug / performance loop.
