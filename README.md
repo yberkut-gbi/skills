@@ -63,6 +63,7 @@ Skills install into your agent's skills directory (e.g. `.claude/skills/`).
 - `fe-coach` — growth-oriented note on the human–AI collaboration for each PR.
 
 **Product** — decide what to build → a ship-ready issue. *(rich: ★)*
+- `pm-discover-flow` — pre-ticket PM conductor: sequences discover (`pm-discover`) → frame (`pm-frame`) → **Decide** (`core-grill`). Decide is a mandatory fork — pauses for human confirmation (interactive) or stops-and-escalates (headless). Output: a direction-locked opportunity brief.
 - `pm-discover` — explore the problem space before writing a ticket: surface user pain, stakeholder context, existing patterns, and opportunity signals; output a problem statement ready for `pm-frame`.
 - `pm-frame` — shape a discovered problem into an opportunity frame: boundaries, success criteria, three solution bets (PDF-Loop), risks, and a recommended direction; output an opportunity brief ready for `core-grill` → `pm-to-prd`.
 - `pm-to-prd` — synthesize the aligned context into a PRD with a team-rules-seeded gap-check; publish to the tracker.
@@ -78,7 +79,7 @@ Jira is the **only** issue tracker the skills use. `core-setup` wires it through
 
 **The ticket protocol.** Whenever a work skill (`fe-tdd`, `fe-flow`, `core-diagnose`) begins on an existing ticket, it *claims* it: assign yourself if it's unassigned; if it's held by someone else, report **who and when** and ask before continuing — and on autonomous `fe-flow` runs, never steal it, just stop and escalate. It then moves the status to match the work (**In Progress** → **In Review**). Full protocol and tool map in `core-setup/MCP-SETUP.md`; `core-check-setup` verifies readiness.
 
-**Model split.** Each skill pins a `model:` to match its work — **Opus** for the architectural and grilling skills (`core-grill`, `pm-to-prd`, `pm-to-issues`, `fe-deepen`, `fe-coach`, `core-distill-rules`, `core-zoom-out`), **Sonnet** for the development and mechanical ones (`fe-tdd`, `fe-verify-ui`, `fe-to-review`, `fe-run`, `core-diagnose`, `core-handoff`, `core-setup`, `core-check-setup`, and `fe-flow`, which executes within an already-pinned spec — override to Opus via `FE_SHIP_MODEL=opus` for an architecturally heavy ticket).
+**Model split.** Each skill pins a `model:` to match its work — **Opus** for the architectural and grilling skills (`core-grill`, `pm-discover`, `pm-frame`, `pm-discover-flow`, `pm-to-prd`, `pm-to-issues`, `fe-deepen`, `fe-coach`, `core-distill-rules`, `core-zoom-out`), **Sonnet** for the development and mechanical ones (`fe-tdd`, `fe-verify-ui`, `fe-to-review`, `fe-run`, `core-diagnose`, `core-handoff`, `core-setup`, `core-check-setup`, and `fe-flow`, which executes within an already-pinned spec — override to Opus via `FE_SHIP_MODEL=opus` for an architecturally heavy ticket).
 
 ## The shared-memory substrate
 
